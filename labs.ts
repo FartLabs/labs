@@ -30,49 +30,33 @@ export class Lab<T extends Record<PropertyKey, unknown> = {}> {
 
     return resource;
   }
-
-  /**
-   * runResource runs a resource in the lab.
-   */
-  public runResource<
-    TName extends keyof T,
-    TResource extends T[TName],
-    TProps
-      extends (TResource extends (...args: any) => any
-        ? Parameters<TResource>[0]
-        : never),
-    TReturnType
-      extends (TResource extends (...args: any) => any ? ReturnType<TResource>
-        : never),
-  >(name: string, props: TProps): TReturnType {
-    const resource = this.getResource(name);
-    if (!resource) {
-      throw new Error(`No such resource: ${name}`);
-    }
-
-    if (typeof resource !== "function") {
-      throw new Error(`Resource is not a function: ${name}`);
-    }
-
-    return resource(props);
-  }
 }
 
-const testDb = new Map<string, string>([
-  ["SELECT * FROM users", "User 1, User 2, User 3"],
-]);
-
 const lab = new Lab()
-  // .setResource("std.procedures.add", ...
-  .setResource("db", testDb)
-  .setResource("db.query", (props: { query: string }) => {
-    const db = lab.getResource("db");
-    return db.get(props.query);
+  .setResource(
+    "std.procedures.add",
+    <TName extends string, TProps, TReturnType>(
+      props: { name: TName; procedure: (props: TProps) => TReturnType },
+    ) => {
+      return lab.setResource(props.name, props.procedure);
+    },
+  )
+  .getResource("std.procedures.add")({
+    name: "math.add",
+    procedure: (props: { a: number; b: number }) => {
+      return props.a + props.b;
+    },
   });
 
 const result = lab.runResource(
-  "db.query",
-  { query: "SELECT * FROM users" },
+  "math.add",
+  {
+    name: "math.add",
+    procedure: (props: { a: number; b: number }) => {
+      return props.a + props.b;
+    },
+  },
 );
 
+// 
 console.log(result);
