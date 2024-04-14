@@ -7,12 +7,10 @@ export class Lab<T extends Record<PropertyKey, unknown> = {}> {
   /**
    * variable sets a variable in the lab.
    */
-  // TODO: Replace arguments with options bag.
   public variable<TName extends string, TValue>(
-    name: TName,
-    value: TValue,
+    options: { name: TName; value: TValue },
   ): Lab<T & Record<TName, TValue>> {
-    this.#variables.set(name, value);
+    this.#variables.set(options.name, options.value);
     return this as Lab<T & Record<TName, TValue>>;
   }
 
@@ -25,14 +23,28 @@ export class Lab<T extends Record<PropertyKey, unknown> = {}> {
     TProps,
     TReturnType,
   >(
-    name: TName,
-    procedure: (
-      props: TProps,
-      dependencies: { [K in TDependency]: T[K] },
-    ) => TReturnType,
-    dependencyNames?: TDependency[],
+    options: {
+      /**
+       * name is the name of the procedure.
+       */
+      name: TName;
+
+      /**
+       * dependencies are the names of the variables/procedures that this
+       * procedure depends on.
+       */
+      dependencies?: TDependency[];
+
+      /**
+       * execute invokes the procedure with the given props and dependencies.
+       */
+      execute: (
+        props: TProps,
+        dependencies: { [K in TDependency]: T[K] },
+      ) => TReturnType;
+    },
   ): Lab<T & Record<TName, (props: TProps) => TReturnType>> {
-    const dependencies = (dependencyNames ?? [])
+    const dependencies = (options.dependencies ?? [])
       .reduce(
         (acc, key) => {
           acc[key] = this.get(key);
@@ -41,8 +53,8 @@ export class Lab<T extends Record<PropertyKey, unknown> = {}> {
         {} as { [K in TDependency]: T[K] },
       ) ?? {} as { [K in TDependency]: T[K] };
     this.#variables.set(
-      name,
-      (props: TProps) => procedure(props, dependencies),
+      options.name,
+      (props: TProps) => options.execute(props, dependencies),
     );
     return this as Lab<T & Record<TName, (props: TProps) => TReturnType>>;
   }
@@ -94,12 +106,15 @@ const testDb = new Map<string, string>([
   ["SELECT * FROM users", "User 1, User 2, User 3"],
 ]);
 
-// In practice, we will have a lab
 const lab = new Lab()
-  .variable("db", testDb)
-  .procedure("db.query", (props: { query: string }, { db }) => {
-    return db.get(props.query);
-  }, ["db"]);
+  .variable({ name: "db", value: testDb })
+  .procedure({
+    name: "db.query",
+    dependencies: ["db"],
+    execute(props: { query: string }, { db }) {
+      return db.get(props.query);
+    },
+  });
 
 const result = lab.run(
   "db.query",
