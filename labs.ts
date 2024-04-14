@@ -2,7 +2,7 @@
  * Lab is a collection of resources that can be used together to perform tasks.
  */
 export class Lab<
-  T extends Record<PropertyKey, unknown> = Record<PropertyKey, never>,
+  T extends Record<PropertyKey, unknown> = Record<PropertyKey, unknown>,
 > {
   #variables = new Map<string, unknown>();
 
@@ -66,9 +66,9 @@ export class Lab<
   }
 
   /**
-   * run runs a callable variable in the lab.
+   * execute executes a callable variable in the lab.
    */
-  public run<
+  public execute<
     TName extends keyof T,
     TResource extends T[TName],
     TProps extends // deno-lint-ignore no-explicit-any
@@ -96,16 +96,16 @@ const testDb = new Map<string, string>([
 ]);
 
 const lab = new Lab()
-  .variable("db", testDb)
+  // .variable("db", testDb)
   .procedure(
     "db.query",
     (props: { query: string }, { db }) => {
-      return db.get(props.query);
+      return (db as typeof testDb).get(props.query);
     },
     ["db"],
   );
 
-const result = lab.run(
+const result = lab.execute(
   "db.query",
   { query: "SELECT * FROM users" },
 );
