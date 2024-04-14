@@ -70,24 +70,24 @@ export class Lab<
    */
   public execute<
     TName extends keyof T,
-    TResource extends T[TName],
+    TValue extends T[TName],
     TProps extends // deno-lint-ignore no-explicit-any
-    (TResource extends (...args: any) => any ? Parameters<TResource>[0]
+    (TValue extends (...args: any) => any ? Parameters<TValue>[0]
       : never),
     TReturnType extends // deno-lint-ignore no-explicit-any
-    (TResource extends (...args: any) => any ? ReturnType<TResource>
+    (TValue extends (...args: any) => any ? ReturnType<TValue>
       : never),
   >(name: TName, props: TProps): TReturnType {
-    const resource = this.get(name);
-    if (!resource) {
+    const value = this.get(name);
+    if (!value) {
       throw new Error(`No such resource: ${String(name)}`);
     }
 
-    if (typeof resource !== "function") {
+    if (typeof value !== "function") {
       throw new Error(`Resource is not a function: ${String(name)}`);
     }
 
-    return resource(props);
+    return value(props);
   }
 }
 
@@ -96,11 +96,11 @@ const testDb = new Map<string, string>([
 ]);
 
 const lab = new Lab()
-  // .variable("db", testDb)
+  .variable("db", testDb)
   .procedure(
     "db.query",
     (props: { query: string }, { db }) => {
-      return (db as typeof testDb).get(props.query);
+      return db.get(props.query);
     },
     ["db"],
   );
