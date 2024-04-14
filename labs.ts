@@ -91,25 +91,94 @@ export class Lab<
   }
 }
 
-const testDb = new Map<string, string>([
-  ["SELECT * FROM users", "User 1, User 2, User 3"],
-]);
-
-const lab = new Lab()
-  .variable("db", testDb)
-  .procedure(
-    "db.query",
-    (props: { query: string }, { db }) => {
-      return db.get(props.query);
-    },
-    ["db"],
-  );
-
-const result = lab.execute(
-  "db.query",
-  { query: "SELECT * FROM users" },
-);
-
 // deno run -A labs.ts
 //
-console.log(result);
+// Proof-of-concept Lab.
+// Features:
+// - add notes via datasource resource, get notes via datasource resource, and list notes via datasource resource.
+// - ability to dynamically create datasources and relate items between datasources.
+//
+interface ItemID {
+  id: string;
+  datasource: string;
+}
+
+interface Item extends ItemID {
+  createdAt: string;
+  updatedAt: string;
+  relationships: ItemID[];
+}
+
+interface Note {
+  title?: string;
+  content: string;
+}
+
+interface Movie {
+  title: string;
+  director: string;
+}
+
+function makeItem(datasource: string, id: string): Item {
+  const createdAt = new Date().toISOString();
+  return {
+    id,
+    datasource,
+    createdAt,
+    updatedAt: createdAt,
+    relationships: [],
+  };
+}
+
+const itemsLab = new Lab()
+  .variable("items", new Map<string, Item>())
+  .procedure(
+    "items.add",
+    ({ id, datasource }: ItemID, { items }) => {
+      items.set(id, makeItem(datasource, id));
+    },
+    ["items"],
+  )
+  .procedure(
+    "items.get",
+    (id: string, { items }) => {
+      return items.get(id);
+    },
+    ["items"],
+  );
+
+// TODO: Add ability to get stored data from itemsLab across other stores. Perhaps a new lab that introduces a procedure that assigns procedure names to datasources.
+// TODO: Add notes and movies labs.
+
+const lab = itemsLab
+  .variable("notes", new Map<string, Note>())
+  .variable("movies", new Map<string, Movie>())
+  .procedure(
+    "notes.add",
+    (note: Note, { notes, "items.add": addItem }) => {
+      const id = crypto.randomUUID();
+      addItem({ id, datasource: "notes" });
+      notes.set(id, note);
+    },
+    ["notes", "items.add"],
+  )
+  .procedure(
+    "notes.get",
+    ({ id }: { id: string }, { notes }) => {
+      return notes.get(id);
+    },
+    ["notes"],
+  )
+  .procedure(
+    "notes.list",
+    (_, { notes }) => {
+      return Array.from(notes.values());
+    },
+    ["notes"],
+  );
+
+lab.execute("notes.add", {
+  content: "Hello, world!",
+});
+
+console.log(lab.execute("notes.list", {}));
