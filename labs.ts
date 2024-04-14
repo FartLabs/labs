@@ -1,16 +1,19 @@
 /**
  * Lab is a collection of resources that can be used together to perform tasks.
  */
-export class Lab<T extends Record<PropertyKey, unknown> = {}> {
+export class Lab<
+  T extends Record<PropertyKey, unknown> = Record<PropertyKey, never>,
+> {
   #variables = new Map<string, unknown>();
 
   /**
    * variable sets a variable in the lab.
    */
   public variable<TName extends string, TValue>(
-    options: { name: TName; value: TValue },
+    name: TName,
+    value: TValue,
   ): Lab<T & Record<TName, TValue>> {
-    this.#variables.set(options.name, options.value);
+    this.#variables.set(name, value);
     return this as Lab<T & Record<TName, TValue>>;
   }
 
@@ -23,40 +26,27 @@ export class Lab<T extends Record<PropertyKey, unknown> = {}> {
     TProps,
     TReturnType,
   >(
-    options: {
-      /**
-       * name is the name of the procedure.
-       */
-      name: TName;
-
-      /**
-       * dependencies are the names of the variables/procedures that this
-       * procedure depends on.
-       */
-      dependencies?: TDependency[];
-
-      /**
-       * execute invokes the procedure with the given props and dependencies.
-       */
-      execute: (
-        props: TProps,
-        dependencies: { [K in TDependency]: T[K] },
-      ) => TReturnType;
-    },
+    name: TName,
+    execute: (
+      props: TProps,
+      dependencies: { [K in TDependency]: T[K] },
+    ) => TReturnType,
+    dependencyNames?: TDependency[],
   ): Lab<T & Record<TName, (props: TProps) => TReturnType>> {
-    const dependencies = (options.dependencies ?? [])
-      .reduce(
-        (acc, key) => {
-          acc[key] = this.get(key);
-          return acc;
-        },
-        {} as { [K in TDependency]: T[K] },
-      ) ?? {} as { [K in TDependency]: T[K] };
-    this.#variables.set(
-      options.name,
-      (props: TProps) => options.execute(props, dependencies),
-    );
-    return this as Lab<T & Record<TName, (props: TProps) => TReturnType>>;
+    const procedure = (props: TProps) => {
+      const dependencies = (dependencyNames ?? [])
+        .reduce(
+          (acc, key) => {
+            acc[key] = this.get(key);
+            return acc;
+          },
+          {} as { [K in TDependency]: T[K] },
+        );
+
+      return execute(props, dependencies);
+    };
+
+    return this.variable(name, procedure);
   }
 
   /**
@@ -81,21 +71,20 @@ export class Lab<T extends Record<PropertyKey, unknown> = {}> {
   public run<
     TName extends keyof T,
     TResource extends T[TName],
-    TProps
-      extends (TResource extends (...args: any) => any
-        ? Parameters<TResource>[0]
-        : never),
-    TReturnType
-      extends (TResource extends (...args: any) => any ? ReturnType<TResource>
-        : never),
-  >(name: string, props: TProps): TReturnType {
+    TProps extends // deno-lint-ignore no-explicit-any
+    (TResource extends (...args: any) => any ? Parameters<TResource>[0]
+      : never),
+    TReturnType extends // deno-lint-ignore no-explicit-any
+    (TResource extends (...args: any) => any ? ReturnType<TResource>
+      : never),
+  >(name: TName, props: TProps): TReturnType {
     const resource = this.get(name);
     if (!resource) {
-      throw new Error(`No such resource: ${name}`);
+      throw new Error(`No such resource: ${String(name)}`);
     }
 
     if (typeof resource !== "function") {
-      throw new Error(`Resource is not a function: ${name}`);
+      throw new Error(`Resource is not a function: ${String(name)}`);
     }
 
     return resource(props);
@@ -107,14 +96,14 @@ const testDb = new Map<string, string>([
 ]);
 
 const lab = new Lab()
-  .variable({ name: "db", value: testDb })
-  .procedure({
-    name: "db.query",
-    dependencies: ["db"],
-    execute(props: { query: string }, { db }) {
+  .variable("db", testDb)
+  .procedure(
+    "db.query",
+    (props: { query: string }, { db }) => {
       return db.get(props.query);
     },
-  });
+    ["db"],
+  );
 
 const result = lab.run(
   "db.query",
@@ -122,4 +111,5 @@ const result = lab.run(
 );
 
 // deno run -A labs.ts
+//
 console.log(result);
