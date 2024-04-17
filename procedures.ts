@@ -22,6 +22,7 @@ export class ProcedureLab<
   public variable<TName extends string, TValue>(
     name: TName,
     value: TValue,
+    // TODO: Consider adding docstring per variable.
   ): ProcedureLab<T & Variable<TName, TValue>> {
     return super.variable(name, value) as ProcedureLab<
       T & Variable<TName, TValue>
@@ -59,6 +60,7 @@ export class ProcedureLab<
       dependencies: { [K in TDependency]: T[K] },
     ) => TResponse,
     dependencyNames?: TDependency[],
+    // TODO: Consider replacing arguments with a single object argument.
   ): ProcedureLab<T & Variable<TName, Procedure<TRequest, TResponse>>> {
     const procedure = (props: TRequest) => {
       const dependencies = (dependencyNames ?? [])
