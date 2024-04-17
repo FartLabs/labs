@@ -80,18 +80,6 @@ export class ProcedureLab<
   /**
    * execute executes a callable variable in the lab.
    */
-  //   public execute<
-  //     TName extends keyof T,
-  //     TValue extends T[TName],
-  //     TRequest extends // deno-lint-ignore no-explicit-any
-  //     (TValue extends (...args: any) => any
-  //       ? (Parameters<TValue>[0] extends undefined ? Parameters<TValue>[0]
-  //         : never)
-  //       : never),
-  //     TResponse extends // deno-lint-ignore no-explicit-any
-  //     (TValue extends (...args: any) => any ? ReturnType<TValue>
-  //       : never),
-  //   >(name: TName): TResponse;
   public execute<
     TName extends keyof T,
     TValue extends T[TName],
@@ -101,17 +89,7 @@ export class ProcedureLab<
     TResponse extends // deno-lint-ignore no-explicit-any
     (TValue extends (...args: any) => any ? ReturnType<TValue>
       : never),
-  >(name: TName, request: TRequest): TResponse;
-  public execute<
-    TName extends keyof T,
-    TValue extends T[TName],
-    TRequest extends // deno-lint-ignore no-explicit-any
-    (TValue extends (...args: any) => any ? Parameters<TValue>[0]
-      : never),
-    TResponse extends // deno-lint-ignore no-explicit-any
-    (TValue extends (...args: any) => any ? ReturnType<TValue>
-      : never),
-  >(name: TName, request?: TRequest): TResponse {
+  >(name: TName, request: TRequest): TResponse {
     const procedure = this.get(name);
     if (!procedure) {
       throw new Error(`No such resource: ${String(name)}`);
