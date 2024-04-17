@@ -12,11 +12,28 @@ import { notesLab } from "./notes.ts";
 // TODO: Add notes and media labs.
 //
 if (import.meta.main) {
-  const note1 = notesLab.execute("notes.add", { content: "Hello, world!" });
-  const note2 = notesLab.execute("notes.add", { content: "Goodbye, world!" });
-  notesLab.execute("items.link", { a: note1.id, b: note2.id });
+  const note1 = notesLab.execute(
+    "notes.add",
+    { content: "Hello, world!" },
+  );
+  const note2 = notesLab.execute(
+    "notes.add",
+    { content: "Goodbye, world!" },
+  );
+  notesLab.execute("links.addLink", { a: note1.id, b: note2.id });
+  printLinkedNotes(note1.id);
+  printLinkedNotes(note2.id);
+}
 
-  // TODO: Second argument is not needed for procedures that feature an empty request.
-  const links = notesLab.execute("items.listLinks", { id: note1.id });
-  console.log(links);
+function printLinkedNotes(id: string) {
+  const linkedNotes = notesLab.execute("links.get", { id });
+  console.log(`Note ${id} is linked with:`);
+  if (linkedNotes === undefined || linkedNotes.links.length === 0) {
+    console.log("- No linked notes.");
+    return;
+  }
+
+  for (const link of linkedNotes.links) {
+    console.log(`- Note ${link.id}`);
+  }
 }

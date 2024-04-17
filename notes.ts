@@ -1,12 +1,15 @@
+import { Lab } from "./labs.ts";
+import { linksLab } from "./links.ts";
 import { itemsLab } from "./items.ts";
 
-interface Note {
+export interface Note {
   title?: string;
   content: string;
 }
 
-export const notesLab = itemsLab
-  .clone()
+export const notesLab = new Lab()
+  .import(itemsLab)
+  .import(linksLab)
   .variable("notes", new Map<string, Note>())
   .procedure(
     "notes.add",
