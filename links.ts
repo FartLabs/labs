@@ -7,12 +7,10 @@ export interface Linkable {
 
 export function link(a: Linkable, b: Linkable): void {
   a.links.push({ id: b.id });
-  b.links.push({ id: a.id });
 }
 
 export function unlink(a: Linkable, b: Linkable): void {
   a.links = a.links.filter((l) => l.id !== b.id);
-  b.links = b.links.filter((l) => l.id !== a.id);
 }
 
 export const linksLab = new Lab()
@@ -43,30 +41,21 @@ export const linksLab = new Lab()
   )
   .procedure(
     "links.link",
-    (request: { a: string; b: string }, { "links.get": getLink }) => {
-      const a = getLink({ id: request.a });
-      if (a === undefined) {
-        throw new Error(`No such linkable: ${request.a}`);
-      }
-
-      const b = getLink({ id: request.b });
-      if (b === undefined) {
-        throw new Error(`No such linkable: ${request.b}`);
-      }
-
-      link(a, b);
-    },
-    ["links.get"],
-  )
-  .procedure(
-    "links.addLink",
     (
-      request: { a: string; b: string },
+      request: { ids: string[] },
       { "links.get": getLink, "links.add": addLink },
     ) => {
-      const a = getLink({ id: request.a }) ?? addLink({ id: request.a });
-      const b = getLink({ id: request.b }) ?? addLink({ id: request.b });
-      link(a, b);
+      const linkables = request.ids.map((id) => {
+        return getLink({ id }) ?? addLink({ id });
+      });
+
+      for (let i = 0; i < linkables.length; i++) {
+        for (let j = 0; j < linkables.length; j++) {
+          if (i !== j) {
+            link(linkables[i], linkables[j]);
+          }
+        }
+      }
     },
     ["links.get", "links.add"],
   )
