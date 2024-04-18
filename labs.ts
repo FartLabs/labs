@@ -51,9 +51,9 @@ export class Lab<
   }
 
   /**
-   * import adds all variables from another lab.
+   * extends extends the lab with the variables and procedures from another lab.
    */
-  public import<U extends Record<PropertyKey, unknown>>(
+  public extend<U extends Record<PropertyKey, unknown>>(
     lab: Lab<U>,
   ): Lab<T & U> {
     for (const [name, value] of lab) {

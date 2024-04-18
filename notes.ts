@@ -8,8 +8,8 @@ export interface Note {
 }
 
 export const notesLab = new Lab()
-  .import(itemsLab)
-  .import(linksLab)
+  .extend(itemsLab)
+  .extend(linksLab)
   .variable("notes", new Map<string, Note>())
   .procedure(
     "notes.add",
