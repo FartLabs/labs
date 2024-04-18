@@ -68,6 +68,13 @@ export class Lab<
   }
 
   /**
+   * satisfies fails type-check if the lab does implement the required variables.
+   */
+  public satisfies<U extends Record<PropertyKey, unknown>>(_: Lab<U>): Lab<T> {
+    return this;
+  }
+
+  /**
    * deepCopy creates a new lab with the same variables.
    */
   public deepCopy(): Lab<T> {

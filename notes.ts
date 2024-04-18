@@ -10,6 +10,7 @@ export interface Note {
 export const notesLab = new Lab()
   .extend(itemsLab)
   .extend(linksLab)
+  .satisfies(itemsLab)
   .variable("notes", new Map<string, Note>())
   .procedure(
     "notes.add",
