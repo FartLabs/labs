@@ -70,7 +70,9 @@ export class Lab<
   /**
    * satisfies fails type-check if the lab does implement the required variables.
    */
-  public satisfies<U extends Record<PropertyKey, unknown>>(_: Lab<U>): Lab<T> {
+  public satisfies<
+    U extends T extends U ? Record<PropertyKey, unknown> : never,
+  >(_: Lab<U>): Lab<T> {
     return this;
   }
 
