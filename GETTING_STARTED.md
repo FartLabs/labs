@@ -1,8 +1,9 @@
 # Getting Started
 
-### Notes lab
+## Your first lab
 
-`notesLab` is a simple example that demonstrates the basic concepts of Labs.
+The Notes Lab is a simple example that demonstrates the basic concepts of Labs.
+Follow the steps below to create a new Lab that manages notes.
 
 1\. Import the `Lab` class in a new TypeScript file, `main.ts`.
 

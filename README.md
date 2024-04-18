@@ -1,8 +1,8 @@
-# labs
+# Labs
 
 [![GitHub Actions](https://github.com/FartLabs/labs/actions/workflows/check.yaml/badge.svg)](https://github.com/FartLabs/labs/actions/workflows/check.yaml)
 
-🧪 Labs by FartLabs.
+🧪 Labs by [**@FartLabs**](https://github.com/FartLabs)
 
 ## Overview
 
@@ -43,8 +43,10 @@ maintainable, and reusable code.
 
 ## Usage
 
-Take a look at the [GETTING_STARTED.md](./GETTING_STARTED.md) guide for a simple
-example that demonstrates the basic concepts of Labs.
+- The [GETTING_STARTED.md](./GETTING_STARTED.md) guide is a Notes Lab example
+  that demonstrates the basic concepts of Labs.
+- The [example.ts](./example.ts) file contains a more advanced example that
+  showcases the composability of Labs.
 
 ## Contribute
 
