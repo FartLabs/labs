@@ -41,6 +41,29 @@ maintainable, and reusable code.
   - **Easier to reason about**: Smaller, well-defined Labs simplify code
     analysis and reasoning.
 
+### Use cases
+
+> [!NOTE]
+>
+> Example Labs demonstrating the following use cases will be added in the
+> future.
+
+- **State management**: Labs can be used to manage application state by
+  encapsulating state variables and state-changing procedures within a Lab.
+- **Data processing**: Labs can be used to encapsulate data processing logic,
+  making it easier to manage and reuse.
+- **API clients**: Labs can be used to encapsulate API clients, making it easier
+  to manage API calls and responses.
+- **Configuration management**: Labs can be used to manage application
+  configuration by encapsulating configuration variables and procedures within a
+  Lab.
+- **Second brain**: Labs can be used to encapsulate knowledge and procedures
+  that are useful for a specific domain or task.
+- **Testing**: Labs can be used to encapsulate test data and test procedures,
+  making it easier to manage and reuse test cases.
+- **Miscellaneous**: Labs can be used for any task that requires encapsulation,
+  modularity, and reusability.
+
 ## Usage
 
 - The [GETTING_STARTED.md](./GETTING_STARTED.md) guide is a Notes Lab example
