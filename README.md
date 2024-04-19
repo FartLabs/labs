@@ -9,13 +9,37 @@
 A Lab is a data structure designed for composable and type-safe management of
 variables and procedures.
 
-Labs excel in promoting modularity and reusability. Small, well-defined Labs can
-be composed to create complex data structures. This approach simplifies code
-composition and improves code quality by reducing _redundancy_ and enhancing
-_readability_. Additionally, this approach avoids the need for intricate
-inheritance hierarchies with keywords like `super`, `this`, and `extends`.
+## Usage
 
-### Concepts
+```ts
+import { Lab } from "./labs.ts";
+import { notesLab } from "./notes.ts";
+import { linksLab } from "./links.ts";
+
+const myLab = new Lab()
+  .extend(notesLab)
+  .extend(linksLab);
+
+const note1 = myLab.execute("notes.add", {
+  content: "Hello, World!",
+});
+const note2 = myLab.execute("notes.add", {
+  content: "Goodbye, World!",
+});
+
+myLab.execute("links.link", {
+  ids: [note1.id, note2.id],
+});
+```
+
+## Examples
+
+- ["Your First Lab"](https://github.com/FartLabs/labs/discussions/2) is an
+  example that demonstrates the basic concepts of Labs.
+- [example.ts](./example.ts) contains a more advanced example showcasing the
+  convenience of composing Labs.
+
+## Concepts
 
 - **Lab**: A container that holds a collection of named variables and functions
   (procedures).
@@ -23,25 +47,15 @@ inheritance hierarchies with keywords like `super`, `this`, and `extends`.
 - **Procedure**: A function defined within a Lab that performs a specific task
   and has type-safe access to variables and procedures within the same Lab.
 
-### Benefits
+## Benefits
 
-By adopting Labs, developers can build applications with cleaner, more
-maintainable, and reusable code.
+Labs excel in promoting modularity and reusability. Small, well-defined Labs can
+be composed to create complex data structures. This approach simplifies code
+composition and improves code quality by reducing _redundancy_ and enhancing
+_readability_. Additionally, this approach avoids the need for intricate
+inheritance hierarchies with keywords like `super`, `this`, and `extends`.
 
-- **Simplified composition**: Labs are easier to compose and work with compared
-  to native classes. Accessing variables and procedures within a composed Lab is
-  straightforward.
-- **Improved code quality**: By encouraging the breakdown of complex data
-  structures into smaller, modular Labs, code becomes:
-  - **Maintainable**: Changes to a Lab's structure are localized and isolated,
-    reducing the risk of unintended side effects.
-  - **Less duplicated**: Shared functionalities can be encapsulated in reusable
-    Labs, minimizing redundancy.
-  - **More readable**: Clear separation of concerns improves code comprehension.
-  - **Easier to reason about**: Smaller, well-defined Labs simplify code
-    analysis and reasoning.
-
-### Use cases
+## Use cases
 
 > [!NOTE]
 >
@@ -63,13 +77,6 @@ maintainable, and reusable code.
   making it easier to manage and reuse test cases.
 - **Miscellaneous**: Labs can be used for any task that requires encapsulation,
   modularity, and reusability.
-
-## Usage
-
-- The [GETTING_STARTED.md](./GETTING_STARTED.md) guide is a Notes Lab example
-  that demonstrates the basic concepts of Labs.
-- The [example.ts](./example.ts) file contains a more advanced example that
-  showcases the composability of Labs.
 
 ## Contribute
 
