@@ -2,7 +2,7 @@
 
 [![GitHub Actions](https://github.com/FartLabs/labs/actions/workflows/check.yaml/badge.svg)](https://github.com/FartLabs/labs/actions/workflows/check.yaml)
 
-🧪 Labs by [**@FartLabs**](https://github.com/FartLabs)
+🧪 Labs by [FartLabs](https://github.com/FartLabs)
 
 ## Overview
 
@@ -36,8 +36,8 @@ myLab.execute("links.link", {
 
 - ["Your First Lab"](https://github.com/FartLabs/labs/discussions/2) is an
   example that demonstrates the basic concepts of Labs.
-- [example.ts](./example.ts) contains a more advanced example showcasing the
-  convenience of composing Labs.
+- [./example/example.ts](./example/example.ts) contains a more advanced example
+  showcasing the convenience of composing Labs.
 
 ## Concepts
 
@@ -87,6 +87,13 @@ We appreciate your help!
 Run `deno fmt` to format the code.
 
 Run `deno lint` to lint the code.
+
+### Maintenance
+
+Run `deno task generate:example` to generate the generated code for the example.
+
+Run `deno task example` to run the example,
+[./example/example.ts](./example/example.ts).
 
 ---
 
