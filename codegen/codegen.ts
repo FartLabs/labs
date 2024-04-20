@@ -1,3 +1,5 @@
+import { Lab } from "labs/labs.ts";
+import { importsOf } from "./imports.ts";
 import type {
   ExtendDescriptor,
   ImportName,
@@ -6,31 +8,37 @@ import type {
   ProcedureDescriptor,
   VariableDescriptor,
 } from "./types.ts";
-import { importsOf } from "./imports.ts";
 
-export const LAB_IMPORT_SOURCE = "./labs.ts";
+export const codegenLab = new Lab()
+  .procedure("codegen.lab", generateLab);
+
+export const LABS_IMPORT_SOURCE = "./labs.ts";
 
 export function generateLab(descriptor: LabDescriptor): string {
   const instructions = generateInstructions(descriptor);
   return `import { Lab } from "${
-    descriptor.labsImportSource ?? LAB_IMPORT_SOURCE
+    descriptor.labsImportSource ?? LABS_IMPORT_SOURCE
   }";
 ${generateImports(importsOf(descriptor))}
-
 export const ${descriptor.name} = new Lab()${
     instructions.length === 0 ? "" : `\n${indent(...instructions)}`
-  };`;
+  };\n`;
 }
 
 export function generateImports(
   imports: Map<ImportSource, Set<ImportName>>,
 ): string {
-  return Array.from(imports)
+  const generated = Array.from(imports)
     .toSorted(([a], [b]) => a.localeCompare(b))
     .map(([importSource, names]) => {
       return generateImport(Array.from(names).toSorted(), importSource);
     })
     .join("\n");
+  if (generated.length === 0) {
+    return "";
+  }
+
+  return `${generated}\n`;
 }
 
 export function generateImport(names: string[], importSource: string): string {

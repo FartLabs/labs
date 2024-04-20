@@ -1,6 +1,6 @@
-import { Lab } from "../labs.ts";
-import { linksLab } from "../links.ts";
-import { notesLab } from "../notes.ts";
+import { Lab } from "labs/labs.ts";
+import { linksLab } from "labs/links.ts"
+import { notesLab } from "labs/notes.ts"
 
 export const myLab = new Lab()
   .extend(notesLab)

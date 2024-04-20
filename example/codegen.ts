@@ -1,13 +1,13 @@
-import { generateLab } from "../codegen/codegen.ts";
+import { codegenLab } from "labs/codegen/codegen.ts";
 
 await Deno.writeTextFile(
   "./my_lab.ts",
-  generateLab({
+  codegenLab.execute("codegen.lab", {
     name: "myLab",
-    labsImportSource: "../labs.ts",
+    labsImportSource: "labs/labs.ts",
     extends: [
-      { import: { name: "notesLab", source: "../notes.ts" } },
-      { import: { name: "linksLab", source: "../links.ts" } },
+      { import: { name: "notesLab", source: "labs/notes.ts" } },
+      { import: { name: "linksLab", source: "labs/links.ts" } },
     ],
   }),
 );
