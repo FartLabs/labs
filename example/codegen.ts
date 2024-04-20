@@ -1,7 +1,7 @@
-import { codegenLab } from "labs/codegen/codegen.ts";
+import { codegenLab } from "labs/codegen/codegen_lab.ts";
 
 await Deno.writeTextFile(
-  "./my_lab.ts",
+  "./example/my_lab.ts",
   codegenLab.execute("codegen.lab", {
     name: "myLab",
     labsImportSource: "labs/labs.ts",
