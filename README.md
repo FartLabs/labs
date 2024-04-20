@@ -90,7 +90,9 @@ Run `deno lint` to lint the code.
 
 ### Maintenance
 
-Run `deno task generate:example` to generate the generated code for the example.
+Run `deno task generate` to generate the generated code for the project.
+
+### Example
 
 Run `deno task example` to run the example,
 [./example/example.ts](./example/example.ts).
