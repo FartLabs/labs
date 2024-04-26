@@ -19,7 +19,7 @@ if (import.meta.main) {
     "notes.add",
     { content: "Goodbye, world!" },
   );
-  myLab.execute("links.link", { ids: [note1.id, note2.id] });
+  myLab.execute("links.link", { linkIDs: [note1, note2] });
 
   printLinkedNotes(note1.id);
   printLinkedNotes(note2.id);
