@@ -1,17 +1,131 @@
 import { Lab } from "./labs.ts";
+import { makeMapLab, MapInterface, procedureGet, procedureSet } from "./map.ts";
 
+/**
+ * ItemID includes the ID and datasource of an item.
+ */
 export interface ItemID {
   id: string;
   datasource: string;
 }
 
+/**
+ * Item includes the ID, datasource, and timestamps of an item.
+ */
 export interface Item extends ItemID {
   createdAt: string;
   updatedAt: string;
   discardedAt?: string;
 }
 
-function makeItem(datasource: string, id: string): Item {
+export const itemsNamespace = "items" as const;
+
+/**
+ * itemsLab is a lab for managing items.
+ */
+export const itemsLab = makeItemsLab(new Map<string, Item>());
+
+export function procedureAdd<TNamespace extends string>(
+  namespace: TNamespace,
+) {
+  return `${namespace}.add` as const;
+}
+
+export function procedureDiscard<TNamespace extends string>(
+  namespace: TNamespace,
+) {
+  return `${namespace}.discard` as const;
+}
+
+export function procedureRestore<TNamespace extends string>(
+  namespace: TNamespace,
+) {
+  return `${namespace}.restore` as const;
+}
+
+export function procedureUpdate<TNamespace extends string>(
+  namespace: TNamespace,
+) {
+  return `${namespace}.update` as const;
+}
+
+/**
+ * makeItemsLab makes an itemized lab. This lab is intended to be used as a
+ * base lab for other labs.
+ */
+export function makeItemsLab(storage: MapInterface<Item>) {
+  const mapLab = makeMapLab(itemsNamespace, storage);
+  return new Lab()
+    .extend(mapLab)
+    .procedure(
+      procedureAdd(itemsNamespace),
+      (
+        request: { id?: string; datasource: string },
+        { [procedureSet(itemsNamespace)]: setItem },
+      ) => {
+        const id = request.id ?? crypto.randomUUID();
+        setItem({
+          key: id,
+          value: makeItem(request.datasource, id),
+        });
+        return { id };
+      },
+      [procedureSet(itemsNamespace)],
+    )
+    .procedure(
+      procedureUpdate(itemsNamespace),
+      (
+        request: { id: string },
+        { items, [procedureGet(itemsNamespace)]: getItem },
+      ) => {
+        const item = getItem(request);
+        if (item === undefined) {
+          throw new Error(`No such item: ${request.id}`);
+        }
+
+        item.updatedAt = new Date().toISOString();
+        items.set(item.id, item);
+      },
+      [itemsNamespace, procedureGet(itemsNamespace)],
+    )
+    .procedure(
+      procedureDiscard(itemsNamespace),
+      (
+        request: { id: string },
+        {
+          [procedureGet(itemsNamespace)]: getItem,
+          [procedureSet(itemsNamespace)]: setItem,
+        },
+      ) => {
+        const item = getItem(request);
+        if (item === undefined) {
+          throw new Error(`No such item: ${request.id}`);
+        }
+
+        item.discardedAt = new Date().toISOString();
+        setItem({ key: item.id, value: item });
+      },
+      [procedureSet(itemsNamespace), procedureGet(itemsNamespace)],
+    )
+    .procedure(
+      procedureRestore(itemsNamespace),
+      (
+        request: { id: string },
+        { items, [procedureGet(itemsNamespace)]: getItem },
+      ) => {
+        const item = getItem(request);
+        if (item === undefined) {
+          throw new Error(`No such item: ${request.id}`);
+        }
+
+        delete item.discardedAt;
+        items.set(item.id, item);
+      },
+      [itemsNamespace, procedureGet(itemsNamespace)],
+    );
+}
+
+function makeItem(datasource: string, id: string = crypto.randomUUID()): Item {
   const createdAt = new Date().toISOString();
   return {
     id,
@@ -20,96 +134,3 @@ function makeItem(datasource: string, id: string): Item {
     updatedAt: createdAt,
   };
 }
-
-// TODO: Tell the itemsLab which procedures to use for managing/storing relationships in `makeItemsLab` function.
-// This function could be used to create new labs that use the itemsLab as a base and are compatible with other itemized labs.
-// Add a procedure dependency checker that simply checks if the dependency names of a procedure are in the lab.
-
-/**
- * itemsLab is an itemized lab. This lab is intended to be used as a base lab for other labs.
- */
-export const itemsLab = new Lab()
-  .variable("items", new Map<string, Item>())
-  .procedure(
-    "items.add",
-    (request: { id?: string; datasource: string }, { items }): ItemID => {
-      const id = request.id ?? crypto.randomUUID();
-      // TODO: Consider using "{datasource}:{id}" as the key for the item (this would add complexity to how links are managed).
-      items.set(id, makeItem(request.datasource, id));
-      return { id, datasource: request.datasource };
-    },
-    ["items"],
-  )
-  .procedure(
-    "items.get",
-    (request: { id: string }, { items }) => {
-      return items.get(request.id);
-    },
-    ["items"],
-  )
-  .procedure(
-    "items.list",
-    (request: { datasource?: string }, { items }) => {
-      const data = Array.from(items.values());
-      if (request.datasource === undefined) {
-        return data;
-      }
-
-      return data.filter((item) => item.datasource === request.datasource);
-    },
-    ["items"],
-  )
-  .procedure(
-    "items.update",
-    (request: { id: string }, { items, "items.get": getItem }) => {
-      const item = getItem(request);
-      if (item === undefined) {
-        throw new Error(`No such item: ${request.id}`);
-      }
-
-      item.updatedAt = new Date().toISOString();
-      items.set(item.id, item);
-    },
-    ["items", "items.get"],
-  )
-  .procedure(
-    "items.discard",
-    (request: { id: string }, { items, "items.get": getItem }) => {
-      const item = getItem(request);
-      if (item === undefined) {
-        throw new Error(`No such item: ${request.id}`);
-      }
-
-      item.discardedAt = new Date().toISOString();
-      items.set(item.id, item);
-    },
-    ["items", "items.get"],
-  )
-  .procedure(
-    "items.restore",
-    (request: { id: string }, { items, "items.get": getItem }) => {
-      const item = getItem(request);
-      if (item === undefined) {
-        throw new Error(`No such item: ${request.id}`);
-      }
-
-      delete item.discardedAt;
-      items.set(item.id, item);
-    },
-    ["items", "items.get"],
-  )
-  .procedure(
-    "items.delete",
-    (
-      request: { id: string },
-      { items, "items.get": getItem },
-    ) => {
-      const item = getItem(request);
-      if (item === undefined) {
-        throw new Error(`No such item: ${request.id}`);
-      }
-
-      items.delete(request.id);
-    },
-    ["items", "items.get"],
-  );

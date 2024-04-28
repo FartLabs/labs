@@ -13,11 +13,11 @@ const myLab = new Lab()
 if (import.meta.main) {
   const note1 = myLab.execute(
     "notes.add",
-    { content: "Hello, world!" },
+    { value: { content: "Hello, world!" } },
   );
   const note2 = myLab.execute(
     "notes.add",
-    { content: "Goodbye, world!" },
+    { value: { content: "Goodbye, world!" } },
   );
   myLab.execute("links.link", { linkIDs: [note1, note2] });
 

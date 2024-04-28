@@ -1,4 +1,6 @@
 import { Lab } from "./labs.ts";
+import type { MapInterface } from "./map.ts";
+import { makeMapLab, procedureGet, procedureSet } from "./map.ts";
 
 export interface LinkableID {
   id: string;
@@ -14,11 +16,88 @@ export interface AddLinkRequest {
   property?: string;
 }
 
+export const linksNamespace = "links" as const;
+
+export const linksLab = makeLinksLab(new Map());
+
+/**
+ * makeLinksLab makes a lab for managing links.
+ */
+export function makeLinksLab(storage: MapInterface<Linkable>) {
+  return new Lab()
+    .extend(makeMapLab(linksNamespace, storage))
+    .procedure(
+      procedureAddLink(linksNamespace),
+      (
+        request: AddLinkRequest,
+        { [procedureSet(linksNamespace)]: setLink },
+      ): Linkable => {
+        const linkable = makeLinkable(request.id, request.property);
+        setLink({ key: linkableKey(linkable), value: linkable });
+        return linkable;
+      },
+      [procedureSet(linksNamespace)],
+    )
+    .procedure(
+      procedureLink(linksNamespace),
+      (
+        request: { linkIDs: LinkableID[] },
+        {
+          [procedureGet(linksNamespace)]: getLink,
+          [procedureAddLink(linksNamespace)]: addLink,
+        },
+      ): void => {
+        const linkables = request.linkIDs
+          .map((id) => getLink(id) ?? addLink(id));
+
+        for (let i = 0; i < linkables.length; i++) {
+          for (let j = 0; j < linkables.length; j++) {
+            if (i === j) {
+              continue;
+            }
+
+            link(linkables[i], linkables[j]);
+          }
+        }
+      },
+      [procedureGet(linksNamespace), procedureAddLink(linksNamespace)],
+    )
+    .procedure(
+      procedureUnlink(linksNamespace),
+      (
+        request: { a: string; b: string },
+        { [procedureGet(linksNamespace)]: getLink },
+      ): void => {
+        const a = getLink({ id: request.a });
+        if (a === undefined) {
+          throw new Error(`No such linkable: ${request.a}`);
+        }
+
+        const b = getLink({ id: request.b });
+        if (b === undefined) {
+          throw new Error(`No such linkable: ${request.b}`);
+        }
+
+        unlink(a, b);
+        unlink(b, a);
+      },
+      [procedureGet(linksNamespace)],
+    );
+}
+
+export function link(a: Linkable, b: Linkable): void {
+  a.links.push(b);
+}
+
+export function unlink(a: Linkable, b: Linkable): void {
+  a.links = a.links.filter((l) => l.id !== b.id);
+}
+
 function makeLinkable(
-  id?: string,
+  id: string = crypto.randomUUID(),
   property?: string,
 ): Linkable {
-  return { id: id ?? crypto.randomUUID(), property, links: [] };
+  return { id, property, links: [] };
 }
 
 function linkableKey(linkableID: LinkableID): string {
@@ -27,73 +106,20 @@ function linkableKey(linkableID: LinkableID): string {
   }`;
 }
 
-export const linksLab = new Lab()
-  .variable("links", new Map<string, Linkable>())
-  .procedure(
-    "links.add",
-    (request: AddLinkRequest, { links }): Linkable => {
-      const linkable = makeLinkable(request.id, request.property);
-      links.set(linkableKey(linkable), linkable);
-      return linkable;
-    },
-    ["links"],
-  )
-  .procedure(
-    "links.get",
-    (request: LinkableID, { links }): Linkable | undefined => {
-      return links.get(linkableKey(request));
-    },
-    ["links"],
-  )
-  .procedure(
-    "links.list",
-    (_, { links }): Linkable[] => {
-      return Array.from(links.values());
-    },
-    ["links"],
-  )
-  .procedure(
-    "links.link",
-    (
-      request: { linkIDs: LinkableID[] },
-      { "links.get": getLink, "links.add": addLink },
-    ): void => {
-      const linkables = request.linkIDs.map((id) => {
-        return getLink(id) ?? addLink(id);
-      });
-
-      for (let i = 0; i < linkables.length; i++) {
-        for (let j = 0; j < linkables.length; j++) {
-          if (i !== j) {
-            link(linkables[i], linkables[j]);
-          }
-        }
-      }
-    },
-    ["links.get", "links.add"],
-  )
-  .procedure(
-    "links.unlink",
-    (request: { a: string; b: string }, { "links.get": getLink }): void => {
-      const a = getLink({ id: request.a });
-      if (a === undefined) {
-        throw new Error(`No such linkable: ${request.a}`);
-      }
-
-      const b = getLink({ id: request.b });
-      if (b === undefined) {
-        throw new Error(`No such linkable: ${request.b}`);
-      }
-
-      unlink(a, b);
-    },
-    ["links.get"],
-  );
-
-export function link(a: Linkable, b: Linkable): void {
-  a.links.push({ id: b.id });
+export function procedureAddLink<TNamespace extends string>(
+  namespace: TNamespace,
+) {
+  return `${namespace}.addLink` as const;
 }
 
-export function unlink(a: Linkable, b: Linkable): void {
-  a.links = a.links.filter((l) => l.id !== b.id);
+export function procedureLink<TNamespace extends string>(
+  namespace: TNamespace,
+) {
+  return `${namespace}.link` as const;
+}
+
+export function procedureUnlink<TNamespace extends string>(
+  namespace: TNamespace,
+) {
+  return `${namespace}.unlink` as const;
 }
