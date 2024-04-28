@@ -78,7 +78,7 @@ export function makeItemsLab(storage: MapInterface<Item>) {
         request: { id: string },
         { items, [procedureGet(itemsNamespace)]: getItem },
       ) => {
-        const item = getItem(request);
+        const item = getItem({ key: request.id });
         if (item === undefined) {
           throw new Error(`No such item: ${request.id}`);
         }
@@ -97,7 +97,7 @@ export function makeItemsLab(storage: MapInterface<Item>) {
           [procedureSet(itemsNamespace)]: setItem,
         },
       ) => {
-        const item = getItem(request);
+        const item = getItem({ key: request.id });
         if (item === undefined) {
           throw new Error(`No such item: ${request.id}`);
         }
@@ -113,7 +113,7 @@ export function makeItemsLab(storage: MapInterface<Item>) {
         request: { id: string },
         { items, [procedureGet(itemsNamespace)]: getItem },
       ) => {
-        const item = getItem(request);
+        const item = getItem({ key: request.id });
         if (item === undefined) {
           throw new Error(`No such item: ${request.id}`);
         }

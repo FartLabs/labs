@@ -1,13 +1,6 @@
 import { Lab } from "./labs.ts";
 
 /**
- * MemoryID includes the ID of an item in memory.
- */
-export interface MemoryID {
-  id: string;
-}
-
-/**
  * MapInterface contains the methods we use from Map.
  */
 export interface MapInterface<V> {
@@ -38,15 +31,18 @@ export function makeMapLab<
     )
     .procedure(
       procedureDelete(namespace),
-      (request: MemoryID, { [namespace]: items }): void => {
-        items.delete(request.id);
+      (request: { key: string }, { [namespace]: items }): void => {
+        items.delete(request.key);
       },
       [namespace],
     )
     .procedure(
       procedureGet(namespace),
-      (request: MemoryID, { [namespace]: items }): TMemory | undefined => {
-        return items.get(request.id);
+      (
+        request: { key: string },
+        { [namespace]: items },
+      ): TMemory | undefined => {
+        return items.get(request.key);
       },
       [namespace],
     )

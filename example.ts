@@ -26,17 +26,17 @@ if (import.meta.main) {
 }
 
 function printLinkedNotes(id: string) {
-  const noteA = myLab.execute("notes.get", { id });
+  const noteA = myLab.execute("notes.get", { key: id });
   console.log(`Note "${noteA?.content ?? "No content."}" is linked with:`);
 
-  const linkedNotes = myLab.execute("links.get", { id });
+  const linkedNotes = myLab.execute("links.get", { key: id });
   if (linkedNotes === undefined || linkedNotes.links.length === 0) {
     console.log("- No linked notes.");
     return;
   }
 
   for (const link of linkedNotes.links) {
-    const noteB = notesLab.execute("notes.get", { id: link.id });
+    const noteB = notesLab.execute("notes.get", { key: link.id });
     console.log(`- Note "${noteB?.content ?? "No content."}"`);
   }
 }

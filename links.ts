@@ -48,7 +48,7 @@ export function makeLinksLab(storage: MapInterface<Linkable>) {
         },
       ): void => {
         const linkables = request.linkIDs
-          .map((id) => getLink(id) ?? addLink(id));
+          .map((id) => getLink({ key: linkableKey(id) }) ?? addLink(id));
 
         for (let i = 0; i < linkables.length; i++) {
           for (let j = 0; j < linkables.length; j++) {
@@ -65,15 +65,15 @@ export function makeLinksLab(storage: MapInterface<Linkable>) {
     .procedure(
       procedureUnlink(linksNamespace),
       (
-        request: { a: string; b: string },
+        request: { a: LinkableID; b: LinkableID },
         { [procedureGet(linksNamespace)]: getLink },
       ): void => {
-        const a = getLink({ id: request.a });
+        const a = getLink({ key: linkableKey(request.a) });
         if (a === undefined) {
           throw new Error(`No such linkable: ${request.a}`);
         }
 
-        const b = getLink({ id: request.b });
+        const b = getLink({ key: linkableKey(request.b) });
         if (b === undefined) {
           throw new Error(`No such linkable: ${request.b}`);
         }
