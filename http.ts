@@ -1,99 +1,121 @@
 import type { Method } from "@fartlabs/rt";
 import { Router } from "@fartlabs/rt";
-import { Lab } from "./labs.ts";
+import { Procedure } from "./labs.ts";
 
-export type LabRoute<TRequest, TResponse> =
-  | { method: Method }
+// deno-lint-ignore no-explicit-any
+export type Lab = Record<string, Procedure<any, any>>;
+
+export type LabRouteInput<TRequest, TResponse> =
+  | Method
   | {
     method?: Method;
     pattern?: string;
     adapter?: Partial<HTTPAdapter<TRequest, TResponse>>;
   };
 
+export interface LabRoute<TRequest, TResponse> {
+  method: Method;
+  pattern: string;
+  adapter: HTTPAdapter<TRequest, TResponse>;
+}
+
 export interface HTTPAdapter<TRequest, TResponse> {
   request: (request: Request) => TRequest | Promise<TRequest>;
   response: (response: TResponse) => Response | Promise<Response>;
 }
 
-export const defaultLabMethod = "POST";
+export const defaultMethod = "POST";
 
-export function defaultLabPattern<TName extends string>(
+export function defaultURLPatternPathname<TName extends string>(
   name: TName,
 ) {
   return `/${name}` as const;
 }
 
-export function defaultLabAdapterRequest<TRequest>(
+export function defaultAdapterRequest<TRequest>(
   request: Request,
 ): Promise<TRequest> {
   return request.json();
 }
 
-export function defaultLabAdapterResponse<TResponse>(
+export function defaultAdapterResponse<TResponse>(
   response: TResponse,
 ): Response {
   return Response.json(response);
 }
 
-export function labRouter<
-  T extends Record<PropertyKey, unknown> = Record<PropertyKey, unknown>,
->(
-  lab: Lab<T>,
+export function labRouter<TLab extends Lab>(
+  lab: TLab,
   routes: {
-    [name in keyof T]?: T[name] extends (_: unknown) => unknown
-      ? LabRoute<Parameters<T[name]>[0], ReturnType<T[name]>>[]
+    [name in keyof TLab]: TLab[name] extends
+      Procedure<infer TRequest, infer TResponse>
+      ? LabRouteInput<TRequest, TResponse>[]
       : never;
   },
 ): Router {
   const router = new Router();
   for (const name in routes) {
-    if (!lab.isProcedure(name)) {
-      continue;
+    const procedure = lab[name];
+    if (typeof procedure !== "function") {
+      throw new Error(`No such procedure: ${name}`);
     }
 
-    const procedure = lab.get(name) as (_: unknown) => unknown;
-    const labRoutes = routes[name];
-    if (labRoutes === undefined) {
-      continue;
-    }
-
-    for (const labRoute of labRoutes) {
-      const httpMethod = labRoute.method ?? defaultLabMethod;
-      const httpPattern =
-        "pattern" in labRoute && labRoute.pattern !== undefined
-          ? labRoute.pattern
-          : defaultLabPattern(name);
-      const adaptRequest =
-        ("adapter" in labRoute && labRoute.adapter !== undefined
-          ? labRoute.adapter.request
-          : defaultLabAdapterRequest) as (
-            request: Request,
-          ) => Promise<unknown>;
-      const adaptResponse =
-        ("adapter" in labRoute && labRoute.adapter !== undefined
-          ? labRoute.adapter.response
-          : defaultLabAdapterResponse) as (
-            response: unknown,
-          ) => Response;
-
-      // Register the route.
-      router.with({
-        match({ request, url }) {
-          return Promise.resolve(
-            request.method.toUpperCase() === httpMethod &&
-              new URLPattern({ pathname: httpPattern }).test(url),
-          );
-        },
-        async handle({ request }) {
-          return await adaptResponse(
+    for (const labRoute of routes[name]) {
+      const { method, pattern: pathname, adapter } = makeLabRoute(
+        name,
+        labRoute,
+      );
+      router.with(
+        { method, pattern: new URLPattern({ pathname }) },
+        async ({ request }) => {
+          return await adapter.response(
             await procedure(
-              await adaptRequest(request),
+              await adapter.request(request),
             ),
           );
         },
-      });
+      );
     }
   }
 
   return router;
+}
+
+function makeLabRoute<TRequest, TResponse, TName extends string>(
+  name: TName,
+  input: LabRouteInput<TRequest, TResponse>,
+): LabRoute<TRequest, TResponse> {
+  const labRoute: LabRoute<TRequest, TResponse> = {
+    method: defaultMethod,
+    pattern: defaultURLPatternPathname(name),
+    adapter: {
+      request: defaultAdapterRequest,
+      response: defaultAdapterResponse,
+    },
+  };
+
+  if (typeof input === "string") {
+    labRoute.method = input;
+    return labRoute;
+  }
+
+  if (input.method !== undefined) {
+    labRoute.method = input.method;
+  }
+
+  if (input.pattern !== undefined) {
+    labRoute.pattern = input.pattern;
+  }
+
+  if (input.adapter !== undefined) {
+    if (input.adapter.request !== undefined) {
+      labRoute.adapter.request = input.adapter.request;
+    }
+
+    if (input.adapter.response !== undefined) {
+      labRoute.adapter.response = input.adapter.response;
+    }
+  }
+
+  return labRoute;
 }

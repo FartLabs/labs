@@ -1,12 +1,26 @@
 import { labRouter } from "../http.ts";
-import { myLab } from "../example.ts";
 
-export const myLabRouter = labRouter(myLab, {
-  //   "links.list": {
-  //     method: "GET",
-  //     pattern: "/links",
-  //   },
-  // TODO: ??
-  "notes.list": undefined,
-  "items.list": [],
+export const greetRouter = labRouter({
+  greet({ name }: { name: string }) {
+    return { message: `Hello, ${name}!` };
+  },
+}, {
+  greet: [{
+    method: "GET",
+    adapter: {
+      request: (request) => {
+        const url = new URL(request.url);
+        const name = url.searchParams.get("name") ?? "world";
+        return { name };
+      },
+    },
+  }],
 });
+
+// deno run --allow-net examples/http_example.ts
+//
+if (import.meta.main) {
+  Deno.serve(
+    (request) => greetRouter.fetch(request),
+  );
+}
