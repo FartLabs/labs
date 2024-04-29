@@ -2,7 +2,7 @@ import { Lab } from "./labs.ts";
 import { notesLab } from "./notes.ts";
 import { linksLab } from "./links.ts";
 
-const myLab = new Lab()
+export const myLab = new Lab()
   .extend(notesLab)
   .extend(linksLab);
 

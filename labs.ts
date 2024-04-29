@@ -19,8 +19,18 @@ export class Lab<
   #variables = new Map<string, unknown>();
   #procedures = new Set<string>();
 
+  /**
+   * [Symbol.iterator] returns an iterator for the lab's variables.
+   */
   public [Symbol.iterator](): IterableIterator<[string, unknown]> {
     return this.#variables.entries();
+  }
+
+  /**
+   * isProcedure returns true if the lab has a procedure with the given name.
+   */
+  public isProcedure(name: string): boolean {
+    return this.#procedures.has(name);
   }
 
   /**
