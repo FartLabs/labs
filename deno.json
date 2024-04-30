@@ -1,6 +1,7 @@
 {
   "lock": false,
   "imports": {
-    "@fartlabs/rt": "jsr:@fartlabs/rt@^0.0.2"
+    "@fartlabs/rt": "jsr:@fartlabs/rt@^0.0.2",
+    "openapi-types": "npm:openapi-types@^12.1.3"
   }
 }
