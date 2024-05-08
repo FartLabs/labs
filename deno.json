@@ -1,0 +1,9 @@
+{
+  "imports": {
+    "labs/": "./"
+  },
+  "tasks": {
+    "generate": "deno run -Ar https://deno.land/x/generate/cli/main.ts gen.ts",
+    "example": "deno run ./example/example.ts"
+  }
+}
