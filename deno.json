@@ -1,7 +1,12 @@
 {
   "lock": false,
   "imports": {
+    "labs/": "./",
     "@fartlabs/rt": "jsr:@fartlabs/rt@^0.0.2",
     "openapi-types": "npm:openapi-types@^12.1.3"
+  },
+  "tasks": {
+    "generate": "deno run -Ar https://deno.land/x/generate/cli/main.ts gen.ts",
+    "example": "deno run ./example/example.ts"
   }
 }
