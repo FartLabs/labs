@@ -32,3 +32,20 @@ if (import.meta.main) {
     (request) => greetRouter.fetch(request),
   );
 }
+
+// TODO: Proof of concept.
+// - A lab that can be interpreted as a REST API server router.
+// - A lab that can be interpreted as a REST API client.
+
+// Storage systems:
+// - Users. { username }
+// - Projects. { name, description, ownerID }
+// - Labs. { name, description, ownerID }
+// - Views. { name, props, renderFn }
+// - Services/Strategies.
+// - Items.
+// - Links.
+// - Pokemon.
+// - TODOs/Tasks/Reminders.
+// - Notes.
+// - Emails.

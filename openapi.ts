@@ -3,7 +3,14 @@ import type { Method } from "@fartlabs/rt";
 import { Router } from "@fartlabs/rt";
 import { Procedure } from "./labs.ts";
 
-const schema: OpenAPIV3_1.Document = {
+type Response200Of<T extends OpenAPIV3_1.OperationObject> = T extends {
+  responses: {
+    200: { content: { "application/json": { schema: infer U } } };
+  };
+} ? U
+  : never;
+
+const schema = {
   openapi: "3.1.0",
   info: {
     title: "Greet API",
@@ -33,7 +40,15 @@ const schema: OpenAPIV3_1.Document = {
       },
     },
   },
-};
+} as const satisfies OpenAPIV3_1.Document;
+
+type SchemaResponse200 = Response200Of<typeof schema.paths["/greet"]["get"]>;
+
+type SchemaRequestOf<T extends OpenAPIV3_1.OperationObject> = T extends {
+  requestBody: { content: { "application/json": { schema: infer U } } };
+} ? U
+  : T extends { parameters: { schema: infer U }[] } ? U
+  : never;
 
 // deno-lint-ignore no-explicit-any
 export type Lab = Record<string, Procedure<any, any>>;
