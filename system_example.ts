@@ -1,17 +1,16 @@
-// import type { ActionContext } from "./system.ts";
-import { ActionContext, System } from "./system.ts";
+import { ActionContext, Service } from "./system.ts";
+
+export function greet(
+  ctx: ActionContext<{ message: string }>,
+): string {
+  return `Hello, ${ctx.request.message}!`;
+}
 
 if (import.meta.main) {
-  const router = {
-    greeting: {
-      greet(ctx: ActionContext<string>) {
-        return `Hello, ${ctx.request}!`;
-      },
-    },
-  } as const;
-
-  const system = System.from(router);
-
-  const result = system.execute("items", "get", "hello");
+  const service = new Service({ greet });
+  const result = service.execute(
+    "greet",
+    { request: { message: "world" } },
+  );
   console.log(result);
 }
