@@ -37,7 +37,7 @@ export function generateImports(
 }
 
 export function generateImport(names: string[], importSource: string): string {
-  return `import { ${names.join(", ")} } from "${importSource}"`;
+  return `import { ${names.join(", ")} } from "${importSource}";`;
 }
 
 export function generateInstructions(descriptor: LabDescriptor): string[] {
