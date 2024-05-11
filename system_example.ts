@@ -1,70 +1,58 @@
-interface Item {
-  type: string;
+function createService<T extends Record<string, Action>>(
+  actions: T,
+  ctx: Context = {},
+): Service<T> {
+  return Object.fromEntries(
+    Object.entries(actions).map(([actionName, action]) => [
+      actionName,
+      (request: Parameters<typeof action>[0]) => action(request, ctx),
+    ]),
+  ) as Service<T>;
 }
 
-// Do I need to define type schemas for the items? Maybe use ts-morph to describe services in code?
-// Where are the items stored?
+export type Service<T extends ServiceSchema> = {
+  [actionName in keyof T]: ServiceActionOf<T[actionName]>;
+};
 
-// Items service aka the item drive is responsible for managing item storage.
-class ItemsService {
-  constructor(private readonly storage: Map<string, Item>) {}
+export type ServiceSchema = Record<string, Action>;
 
-  public set(request: { type: string; item: Item }): void {
-    this.storage.set(request.type, request.item);
-  }
+export type ServiceActionOf<T extends Action> = Parameters<T>[0] extends never
+  ? () => ReturnType<T>
+  : (request: Parameters<T>[0]) => ReturnType<T>;
 
-  public get(request: { type: string }): Item {
-    const item = this.storage.get(request.type);
-    if (item === undefined) {
-      throw new Error(`Item not found: ${request.type}`);
-    }
+export type Action = (request: any, ctx: Context) => any;
 
-    return item;
-  }
+// export type Action<T extends ServiceSchema> = (request: any, ctx: ) => any;
 
-  public list(): Item[] {
-    return Array.from(this.storage.values());
-  }
-}
+export type Context = Record<string, ServiceAction>;
 
-class RandomService {
-  public pick(request: { from: string[] }): string {
-    return request.from[Math.floor(Math.random() * request.from.length)];
-  }
+export type ServiceAction = (request: any) => any;
 
-  public emoji(): string {
-    return this.pick({ from: ["🌍", "🌎", "🌏"] });
-  }
-}
-
-// class GreetingService {
-//   public constructor(private readonly randomService: RandomService) {}
-
-//   public greet(request: { message: string }): string {
-//     return `Hello, ${request.message}! ${this.randomService.emoji()}`;
-//   }
-// }
-
-class GreetingService {
-  public constructor(private readonly randomService: RandomService) {}
-
-  public greet(request: { message: string }): string {
-    return greet(
-      request,
-      { emoji: this.randomService.emoji.bind(this.randomService) },
-    );
-  }
-}
+type EmojiServiceAction = ServiceActionOf<typeof emoji>;
 
 function greet(
   request: { message: string },
-  { emoji }: { emoji: RandomService["emoji"] },
+  ctx: { emoji: EmojiServiceAction },
 ): string {
-  return `Hello, ${request.message}! ${emoji()}`;
+  return `Hello, ${request.message}! ${ctx.emoji()}`;
+}
+
+function pick(request: { from: string[] }): string {
+  return request.from[Math.floor(Math.random() * request.from.length)];
+}
+
+// TODO: Consider moving the request into the context to avoid confusion
+// with multiple parameters.
+function emoji(_: never, ctx: { pick: typeof pick }): string {
+  return ctx.pick({ from: ["🌍", "🌎", "🌏"] });
 }
 
 if (import.meta.main) {
-  const greetingService = new GreetingService(new RandomService());
+  const randomService = createService({ pick, emoji });
+  const greetingService = createService(
+    { greet },
+    { emoji: randomService.emoji },
+  );
   const result = greetingService.greet({ message: "world" });
   console.log(result);
 }
