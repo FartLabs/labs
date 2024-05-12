@@ -1,17 +1,33 @@
-function createService<T extends ServiceSchema>(
-  actions: T,
+function createService<TSchema extends ServiceSchema>(
+  actions: TSchema,
   ctx: Context = {},
-): Service<T> {
-  return Object.fromEntries(
+  // ctx: ContextOf<TSchema> = {} as ContextOf<TSchema>,
+): Service<TSchema> {
+  const service = Object.fromEntries(
     Object.entries(actions).map(([actionName, action]) => [
       actionName,
-      (request: Parameters<typeof action>[0]) => action(request, ctx),
+      (request: Parameters<typeof action>[0]) =>
+        action(request, { ...service, ...ctx }),
     ]),
-  ) as Service<T>;
+  ) as Service<TSchema>;
+
+  return service;
 }
 
-export type Service<T extends ServiceSchema> = {
-  [actionName in keyof T]: ServiceActionOf<T[actionName]>;
+// export type ContextOf<TSchema extends ServiceSchema> = {
+//   [actionName in keyof ContextSchemaOf<TSchema>]: ServiceActionOf<
+//     TSchema[ContextSchemaOf<TSchema>[actionName]]
+//   >;
+// };
+
+// export type ContextSchemaOf<TSchema extends ServiceSchema> = {
+//   [actionName in keyof TSchema]: TSchema[actionName] extends Action
+//     ? Parameters<TSchema[actionName]>[1]
+//     : never;
+// };
+
+export type Service<TSchema extends ServiceSchema> = {
+  [actionName in keyof TSchema]: ServiceActionOf<TSchema[actionName]>;
 };
 
 export type ServiceSchema = Record<string, Action>;
@@ -20,10 +36,12 @@ export type ServiceActionOf<T extends Action> = Parameters<T>[0] extends
   RequestType.EMPTY ? () => ReturnType<T>
   : (request: Parameters<T>[0]) => ReturnType<T>;
 
-export type Action = (request: any, ctx: Context) => any;
+// deno-lint-ignore no-explicit-any
+export type Action = (request: any, ctx: any) => any;
 
 export type Context = Record<string, ServiceAction>;
 
+// deno-lint-ignore no-explicit-any
 export type ServiceAction = (request: any) => any;
 
 export enum RequestType {
@@ -32,10 +50,7 @@ export enum RequestType {
 
 function greet(
   request: { message: string },
-  ctx: {
-    randomFruit: RandomFruitServiceAction;
-    // pick: (request: { from: string[] }) => string;
-  },
+  ctx: { randomFruit: RandomFruitServiceAction },
 ): string {
   return `Hello, ${request.message}! ${ctx.randomFruit()}`;
 }
@@ -54,15 +69,14 @@ function randomFruit(
   _: RequestType.EMPTY,
   ctx: { pick: PickServiceAction },
 ): string {
-  // return pick({ from: "🍎🍊🍌🍉".split("") });
   return ctx.pick({ from: "🍎🍊🍌🍉".split("") });
 }
 
 if (import.meta.main) {
-  const randomService = createService({ greet });
+  const randomService = createService({ randomFruit, pick });
   const greetingService = createService(
     { greet },
-    { emoji: randomService.emoji },
+    { randomFruit: randomService.randomFruit },
   );
   const result = greetingService.greet({ message: "world" });
   console.log(result);
