@@ -1,4 +1,4 @@
-function createService<T extends Record<string, Action>>(
+function createService<T extends ServiceSchema>(
   actions: T,
   ctx: Context = {},
 ): Service<T> {
@@ -16,39 +16,50 @@ export type Service<T extends ServiceSchema> = {
 
 export type ServiceSchema = Record<string, Action>;
 
-export type ServiceActionOf<T extends Action> = Parameters<T>[0] extends never
-  ? () => ReturnType<T>
+export type ServiceActionOf<T extends Action> = Parameters<T>[0] extends
+  RequestType.EMPTY ? () => ReturnType<T>
   : (request: Parameters<T>[0]) => ReturnType<T>;
 
 export type Action = (request: any, ctx: Context) => any;
-
-// export type Action<T extends ServiceSchema> = (request: any, ctx: ) => any;
 
 export type Context = Record<string, ServiceAction>;
 
 export type ServiceAction = (request: any) => any;
 
-type EmojiServiceAction = ServiceActionOf<typeof emoji>;
+export enum RequestType {
+  EMPTY,
+}
 
 function greet(
   request: { message: string },
-  ctx: { emoji: EmojiServiceAction },
+  ctx: {
+    randomFruit: RandomFruitServiceAction;
+    // pick: (request: { from: string[] }) => string;
+  },
 ): string {
-  return `Hello, ${request.message}! ${ctx.emoji()}`;
+  return `Hello, ${request.message}! ${ctx.randomFruit()}`;
 }
+
+type PickServiceAction = ServiceActionOf<typeof pick>;
 
 function pick(request: { from: string[] }): string {
   return request.from[Math.floor(Math.random() * request.from.length)];
 }
 
+type RandomFruitServiceAction = ServiceActionOf<typeof randomFruit>;
+
 // TODO: Consider moving the request into the context to avoid confusion
 // with multiple parameters.
-function emoji(_: never, ctx: { pick: typeof pick }): string {
-  return ctx.pick({ from: ["🌍", "🌎", "🌏"] });
+function randomFruit(
+  _: RequestType.EMPTY,
+  ctx: { pick: PickServiceAction },
+): string {
+  // return pick({ from: "🍎🍊🍌🍉".split("") });
+  return ctx.pick({ from: "🍎🍊🍌🍉".split("") });
 }
 
 if (import.meta.main) {
-  const randomService = createService({ pick, emoji });
+  const randomService = createService({ greet });
   const greetingService = createService(
     { greet },
     { emoji: randomService.emoji },
