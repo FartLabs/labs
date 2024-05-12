@@ -50,8 +50,8 @@ export type Service<TSchema extends ServiceSchema> = {
 
 export type ServiceSchema = Record<string, Action>;
 
-export type ServiceActionOf<T extends Action> = Parameters<T>[0] extends
-  RequestType.EMPTY ? () => ReturnType<T>
+export type ServiceActionOf<T extends Action> = Parameters<T>[0] extends void
+  ? () => ReturnType<T>
   : (request: Parameters<T>[0]) => ReturnType<T>;
 
 // deno-lint-ignore no-explicit-any
@@ -61,7 +61,3 @@ export type Context = Record<string, ServiceAction>;
 
 // deno-lint-ignore no-explicit-any
 export type ServiceAction = (request: any) => any;
-
-export enum RequestType {
-  EMPTY,
-}

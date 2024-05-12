@@ -1,39 +1,33 @@
-import type { RequestType, ServiceActionOf } from "./system.ts";
+import type { ServiceActionOf } from "./system.ts";
 import { createService } from "./system.ts";
 
 function greet(
   request: { name: string },
-  ctx: { randomFruit: RandomFruitServiceAction },
+  ctx: typeof randomService,
 ): string {
-  return `Hello, ${request.name}! ${ctx.randomFruit()}`;
+  return `Hello, ${request.name}! Your random letter: '${ctx.randomLetter()}'!`;
 }
 
-type PickServiceAction = ServiceActionOf<typeof pick>;
+const randomService = createService({ randomLetter, pickString });
 
-function pick(request: { from: string[] }): string {
+function randomLetter(
+  _: void,
+  ctx: { pickString: PickStringServiceAction },
+): string {
+  return ctx.pickString({ from: "ABCDEFGHIJKLMNOPQRSTUVWXYZ" });
+}
+
+type PickStringServiceAction = ServiceActionOf<typeof pickString>;
+
+function pickString(request: { from: string }): string {
   return request.from[Math.floor(Math.random() * request.from.length)];
 }
 
-type RandomFruitServiceAction = ServiceActionOf<typeof randomFruit>;
-
-// TODO: Consider moving the request into the context to avoid confusion
-// with multiple parameters.
-function randomFruit(
-  _: RequestType.EMPTY,
-  ctx: { pick: PickServiceAction },
-): string {
-  return ctx.pick({ from: "🍎🍊🍌🍉".split("") });
-}
-
 if (import.meta.main) {
-  const randomService = createService({ randomFruit, pick });
-  let result = randomService.randomFruit();
-  console.log(result);
-
   const greetingService = createService(
     { greet },
     randomService,
   );
-  result = greetingService.greet({ name: "world" });
+  const result = greetingService.greet({ name: "World" });
   console.log(result);
 }
