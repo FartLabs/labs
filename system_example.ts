@@ -1,30 +1,51 @@
+/**
+ * createService creates a service from a schema of actions.
+ */
+function createService<TSchema extends ServiceSchema>(
+  actions: ContextOmitService<TSchema> extends Record<PropertyKey, unknown>
+    ? TSchema
+    : never,
+): Service<TSchema>;
 function createService<TSchema extends ServiceSchema>(
   actions: TSchema,
-  ctx: Context = {},
-  // ctx: ContextOf<TSchema> = {} as ContextOf<TSchema>,
+  ctx: ContextOmitService<TSchema>,
+): Service<TSchema>;
+function createService<TSchema extends ServiceSchema>(
+  actions: TSchema,
+  ctx?: ContextOmitService<TSchema>, // = {} as ContextOmitService<TSchema>,
 ): Service<TSchema> {
   const service = Object.fromEntries(
     Object.entries(actions).map(([actionName, action]) => [
       actionName,
       (request: Parameters<typeof action>[0]) =>
-        action(request, { ...service, ...ctx }),
+        action(request, { ...service, ...(ctx ?? {}) }),
     ]),
   ) as Service<TSchema>;
 
   return service;
 }
 
-// export type ContextOf<TSchema extends ServiceSchema> = {
-//   [actionName in keyof ContextSchemaOf<TSchema>]: ServiceActionOf<
-//     TSchema[ContextSchemaOf<TSchema>[actionName]]
-//   >;
-// };
+// If action depends on action from local service and not external context
+// then we can do this.
 
-// export type ContextSchemaOf<TSchema extends ServiceSchema> = {
-//   [actionName in keyof TSchema]: TSchema[actionName] extends Action
-//     ? Parameters<TSchema[actionName]>[1]
-//     : never;
-// };
+export type ContextWithService<TSchema extends ServiceSchema> =
+  & ContextOf<TSchema>
+  & Service<TSchema>;
+
+export type ContextOmitService<TSchema extends ServiceSchema> = Omit<
+  ContextOf<TSchema>,
+  keyof TSchema
+>;
+
+export type ContextOf<TSchema extends ServiceSchema> = ContextSchemaOf<
+  TSchema
+>[keyof TSchema];
+
+export type ContextSchemaOf<TSchema extends ServiceSchema> = {
+  [actionName in keyof TSchema]: TSchema[actionName] extends Action
+    ? Parameters<TSchema[actionName]>[1]
+    : never;
+};
 
 export type Service<TSchema extends ServiceSchema> = {
   [actionName in keyof TSchema]: ServiceActionOf<TSchema[actionName]>;
@@ -49,10 +70,10 @@ export enum RequestType {
 }
 
 function greet(
-  request: { message: string },
+  request: { name: string },
   ctx: { randomFruit: RandomFruitServiceAction },
 ): string {
-  return `Hello, ${request.message}! ${ctx.randomFruit()}`;
+  return `Hello, ${request.name}! ${ctx.randomFruit()}`;
 }
 
 type PickServiceAction = ServiceActionOf<typeof pick>;
@@ -72,12 +93,17 @@ function randomFruit(
   return ctx.pick({ from: "🍎🍊🍌🍉".split("") });
 }
 
+type GreetContext = ContextOmitService<{ greet: typeof greet }>;
+
 if (import.meta.main) {
   const randomService = createService({ randomFruit, pick });
+  let result = randomService.randomFruit();
+  console.log(result);
+
   const greetingService = createService(
     { greet },
-    { randomFruit: randomService.randomFruit },
+    randomService,
   );
-  const result = greetingService.greet({ message: "world" });
+  result = greetingService.greet({ name: "world" });
   console.log(result);
 }
