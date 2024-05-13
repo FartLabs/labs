@@ -1,7 +1,5 @@
 {
-  "imports": {
-    "labs/": "./"
-  },
+  "imports": { "@std/cli": "jsr:@std/cli@^0.224.1", "labs/": "./" },
   "tasks": {
     "generate": "deno run -Ar https://deno.land/x/generate/cli/main.ts gen.ts",
     "example": "deno run ./example/example.ts"
