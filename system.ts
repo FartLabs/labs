@@ -48,7 +48,7 @@ export type Service<TSchema extends ServiceSchema> = {
   [actionName in keyof TSchema]: ServiceActionOf<TSchema[actionName]>;
 };
 
-export type ServiceSchema = Record<string, Action>;
+export type ServiceSchema = Record<PropertyKey, Action>;
 
 export type ServiceActionOf<T extends Action> = Parameters<T>[0] extends void
   ? () => ReturnType<T>
@@ -57,7 +57,7 @@ export type ServiceActionOf<T extends Action> = Parameters<T>[0] extends void
 // deno-lint-ignore no-explicit-any
 export type Action = (request: any, ctx: any) => any;
 
-export type Context = Record<string, ServiceAction>;
+export type Context = Record<PropertyKey, ServiceAction>;
 
 // deno-lint-ignore no-explicit-any
 export type ServiceAction = (request: any) => any;
