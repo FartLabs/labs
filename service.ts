@@ -1,42 +1,72 @@
-export class ItemDriveService {
+export class ItemDriveService<
+  T extends ItemDriveSchema = {},
+> {
   public constructor(
     private readonly schemaStorage: ItemSchemaStorage = new Map(),
     private readonly itemStorage: ItemStorage = new Map(),
   ) {}
 
-  public setItemType(type: string, schema: ItemSchema) {
+  public setItemTypes<TItemDriveSchema extends ItemDriveSchema>(
+    schema: TItemDriveSchema,
+  ): ItemDriveService<T & TItemDriveSchema> {
+    for (const [type, typeSchema] of Object.entries(schema)) {
+      this.setItemType(type, typeSchema);
+    }
+
+    return this as unknown as ItemDriveService<T & TItemDriveSchema>;
+  }
+
+  public setItemType<
+    TType extends string,
+    TItemSchema extends ItemSchema,
+  >(
+    type: TType,
+    schema: TItemSchema,
+  ): ItemDriveService<T & { [type in TType]: TItemSchema }> {
     this.schemaStorage.set(type, schema);
+    return this as unknown as ItemDriveService<
+      T & { [type in TType]: TItemSchema }
+    >;
   }
 
-  public getItemType(type: string) {
-    return this.schemaStorage.get(type);
+  public getItemType<TType extends keyof T>(type: TType): T[TType] {
+    return this.schemaStorage.get(String(type)) as T[TType];
   }
 
-  public setItem(type: string, name: string, item: Item) {
-    this.itemStorage.set(ItemDriveService.itemKey(type, name), item);
+  public getItemTypes(): Array<[string, ItemSchema]> {
+    return Array.from(this.schemaStorage.entries());
   }
 
-  public getItem(type: string, name: string) {
-    return this.itemStorage.get(ItemDriveService.itemKey(type, name));
+  public setItem<TType extends keyof T>(
+    type: TType,
+    name: string,
+    item: ItemOf<T[TType]>,
+  ) {
+    const items = this.itemStorage.get(String(type)) ?? new Map();
+    this.itemStorage.set(
+      String(type),
+      items.set(name, item),
+    );
   }
 
-  public static itemKey(type: string, name: string) {
-    return `${type}:${name}`;
+  public getItem<TType extends keyof T>(
+    type: TType,
+    name: string,
+  ): ItemOf<T[TType]> {
+    return this.itemStorage.get(String(type))?.get(name) as ItemOf<T[TType]>;
   }
 
-  static example() {
-    const service = new ItemDriveService();
-    service.setItemType("person", { name: "string", age: "number" });
-    service.setItem("person", "alice", { name: "Alice", age: 42 });
-    const item = service.getItem("person", "alice");
-    console.log({ item });
+  public getItems<TType extends keyof T>(
+    type: TType,
+  ): Map<string, ItemOf<T[TType]>> {
+    return this.itemStorage.get(String(type)) as Map<string, ItemOf<T[TType]>>;
   }
 }
 
 /**
  * ItemStorage is a storage of items.
  */
-type ItemStorage = Map<string, Item>;
+type ItemStorage = Map<string, Map<string, Item>>;
 
 /**
  * Item is an item.

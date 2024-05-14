@@ -29,6 +29,7 @@ export type ContextWithService<TSchema extends ServiceSchema> =
   & ContextOf<TSchema>
   & Service<TSchema>;
 
+// broken
 export type ContextOmitService<TSchema extends ServiceSchema> = Omit<
   ContextOf<TSchema>,
   keyof TSchema

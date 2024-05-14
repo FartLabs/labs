@@ -1,5 +1,12 @@
-// import { parseArgs } from "@std/cli";
-import type { Context, ServiceAction, ServiceActionOf } from "./system.ts";
+import { parseArgs } from "@std/cli";
+import type {
+  Context,
+  ContextOf,
+  ContextOmitService,
+  ServiceAction,
+  ServiceActionOf,
+} from "./system.ts";
+import { createService } from "./system.ts";
 
 interface CLIOptions<
   TContext extends Context,
@@ -58,15 +65,15 @@ function makeCLICommand<TServiceAction extends ServiceAction>(
   return async (args: string[]) => await action(parseArgs(args));
 }
 
-class GreetingService {
-  public constructor(
-    private readonly randomLetter: RandomLetterServiceAction,
-  ) {}
+// class GreetingService {
+//   public constructor(
+//     private readonly randomLetter: RandomLetterServiceAction,
+//   ) {}
 
-  public greet(request: { name: string }) {
-    return greet(request, { randomLetter: this.randomLetter });
-  }
-}
+//   public greet(request: { name: string }) {
+//     return greet(request, { randomLetter: this.randomLetter });
+//   }
+// }
 
 // This type is conventionally exported with its action implementation
 // so that it can be used in other services. This doubles as a type checking
@@ -80,15 +87,15 @@ function greet(
   return `Hello, ${request.name}! Your random letter: '${ctx.randomLetter()}'!`;
 }
 
-class RandomService {
-  public pick(request: { from: string }) {
-    return pickString(request);
-  }
+// class RandomService {
+//   public pick(request: { from: string }) {
+//     return pickString(request);
+//   }
 
-  public randomLetter() {
-    return randomLetter(undefined, { pick: this.pick });
-  }
-}
+//   public randomLetter() {
+//     return randomLetter(undefined, { pick: this.pick });
+//   }
+// }
 
 type RandomLetterServiceAction = ServiceActionOf<typeof randomLetter>;
 
@@ -100,4 +107,47 @@ type PickStringServiceAction = ServiceActionOf<typeof pickString>;
 
 function pickString(request: { from: string }): string {
   return request.from[Math.floor(Math.random() * request.from.length)];
+}
+
+// Something is fishy here.
+type TestA = ContextOf<{
+  randomLetter: typeof randomLetter;
+  pickString: typeof pickString;
+}>;
+
+// This type is BROKEN!
+type TestB = ContextOmitService<{
+  randomLetter: typeof randomLetter;
+  pickString: typeof pickString;
+}>;
+
+if (import.meta.main) {
+  const randomService = createService({
+    randomLetter,
+    pickString,
+  });
+  const greetingService = createService(
+    { greet },
+    { randomLetter: randomService.randomLetter },
+  );
+
+  // Argument of type 'GreetingService' is not assignable to parameter of type 'Context'.
+  // Index signature for type 'string' is missing in type 'GreetingService'.deno-ts(2345)
+  const cli = makeCLI(greetingService, {
+    command: "greet",
+    parseArgs: {
+      greet: (args) =>
+        parseArgs(args, {
+          string: "name",
+          default: { name: "World" },
+        }),
+    },
+    handleResponse: {
+      greet: (response) => console.log(response),
+    },
+  });
+  await cli(Deno.args);
+
+  // const result = greetingService.greet({ name: "World" });
+  // console.log(result);
 }
