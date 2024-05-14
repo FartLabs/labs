@@ -101,19 +101,3 @@ type PickStringServiceAction = ServiceActionOf<typeof pickString>;
 function pickString(request: { from: string }): string {
   return request.from[Math.floor(Math.random() * request.from.length)];
 }
-
-type Test = keyof GreetingService;
-
-if (import.meta.main) {
-  const randomService = new RandomService();
-  const greetingService = new GreetingService(
-    randomService.randomLetter.bind(randomService),
-  );
-  // Argument of type 'GreetingService' is not assignable to parameter of type 'Context'.
-  // Index signature for type 'string' is missing in type 'GreetingService'.deno-ts(2345)
-  const cli = makeCLI(greetingService, {});
-  await cli(Deno.args);
-
-  // const result = greetingService.greet({ name: "World" });
-  // console.log(result);
-}
