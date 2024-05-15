@@ -1,23 +1,10 @@
 import { DataSource } from "./data_source.ts";
 
-// FSDataSource file system data source storage stores items in the file system.
-// basePath/
-// ├── type1/
-// │   ├── item1.json
-// │   └── item2.json
-// └── type2/
-//     ├── item1.json
-//     └── item2.json
-
 export class FSDataSource implements DataSource {
   public constructor(
     private readonly path: (type: string, name?: string) => string,
-    private readonly encode?:
-      | { text: (item: unknown) => string }
-      | { binary: (item: unknown) => Uint8Array },
-    private readonly decode?:
-      | { text: (text: string) => unknown }
-      | { binary: (data: Uint8Array) => unknown },
+    private readonly encode?: ItemEncoder<unknown>,
+    private readonly decode?: ItemDecoder<unknown>,
   ) {}
 
   public get mode() {
@@ -27,28 +14,36 @@ export class FSDataSource implements DataSource {
     };
   }
 
-  public getItem<TType extends PropertyKey, TItem>(
+  public getItem<TType extends string, TItem>(
     type: TType,
     name: string,
   ): TItem | undefined {
-    return readItem(this.path(type, name), type, this.decode!);
+    if (!this.decode) {
+      throw new Error("Unexpected call to getItem without decode");
+    }
+
+    return readItem(this.path, name, type, this.decode) as TItem | undefined;
   }
 
-  public getItems<TType extends PropertyKey, TItem>(
+  public getItems<TType extends string, TItem>(
     _type: TType,
   ): Array<[string, TItem]> {
     throw new Error("Not implemented");
   }
 
-  public setItem<TType extends PropertyKey, TItem>(
+  public setItem<TType extends string, TItem>(
     type: TType,
     name: string,
     item: TItem,
   ) {
-    writeItem(this.path(type, name), item, type, this.encode!);
+    if (!this.encode) {
+      throw new Error("Unexpected call to setItem without encode");
+    }
+
+    writeItem(this.path, item, name, type, this.encode);
   }
 
-  public setItems<TType extends PropertyKey, TItem>(
+  public setItems<TType extends string, TItem>(
     type: TType,
     items: Array<[string, TItem]>,
   ) {
@@ -57,56 +52,65 @@ export class FSDataSource implements DataSource {
     }
   }
 
-  public deleteItem<TType extends PropertyKey>(
+  public deleteItem<TType extends string>(
     type: TType,
     name: string,
   ): void {
     Deno.removeSync(this.path(type, name));
   }
 
-  public deleteItems<TType extends PropertyKey>(type: TType): void {
+  public deleteItems<TType extends string>(type: TType): void {
     Deno.removeSync(this.path(type));
   }
 }
 
 export function readItem<T = unknown>(
-  path: string,
+  path: ItemPath,
+  name: string,
   type: string,
-  decode: Decoder<T>,
+  decode: ItemDecoder<T>,
 ): T | undefined {
-  if (!Deno.statSync(path).isFile) {
+  const file = path(type, name);
+  if (!Deno.statSync(file).isFile) {
     return undefined;
   }
 
   if ("text" in decode) {
-    const text = Deno.readTextFileSync(path);
-    return decode.text(text, type);
+    const text = Deno.readTextFileSync(file);
+    return decode.text(text, name, type);
   }
 
-  const data = Deno.readFileSync(path);
-  return decode.binary(data, type);
+  const data = Deno.readFileSync(file);
+  return decode.binary(data, name, type);
 }
 
-export type Decoder<T = unknown> =
-  | { text: (text: string, type: string) => T }
-  | { binary: (data: Uint8Array, type: string) => T };
+export type ItemDecoder<T = unknown> =
+  | { text: (text: string, name: string, type: string) => T }
+  | { binary: (data: Uint8Array, name: string, type: string) => T };
 
 export function writeItem<T = unknown>(
-  path: string,
+  path: ItemPath,
   item: T,
+  name: string,
   type: string,
-  encode: Encoder<T>,
+  encode: ItemEncoder<T>,
 ) {
+  const dir = path(type);
+  Deno.mkdirSync(dir, { recursive: true });
+
+  const file = path(type, name);
   if ("text" in encode) {
-    const text = encode.text(item, type);
-    Deno.writeTextFileSync(path, text);
+    const text = encode.text(item, name, type);
+    Deno.writeTextFileSync(file, text);
     return;
   }
 
-  const data = encode.binary(item, type);
-  Deno.writeFileSync(path, data);
+  const data = encode.binary(item, name, type);
+  Deno.writeFileSync(file, data);
 }
 
-export type Encoder<T = unknown> =
-  | { text: (item: T, type: string) => string }
-  | { binary: (item: T, type: string) => Uint8Array };
+export type ItemEncoder<T = unknown> =
+  | { text: (item: T, name: string, type: string) => string }
+  | { binary: (item: T, name: string, type: string) => Uint8Array };
+
+export type ItemPath = (type: string, name?: string) => URL | string;

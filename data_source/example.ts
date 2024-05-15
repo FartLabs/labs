@@ -1,8 +1,17 @@
-import { InMemoryDataSource, ItemDrive, MultiplexedDataSource } from "./mod.ts";
+import {
+  FSDataSource,
+  InMemoryDataSource,
+  ItemDrive,
+  MultiplexedDataSource,
+} from "./mod.ts";
 
 const personSchema = {
   name: "string",
   age: 0,
+} satisfies ItemSchema;
+
+const noteSchema = {
+  text: "string",
 } satisfies ItemSchema;
 
 /**
@@ -12,21 +21,35 @@ type ItemSchema = Record<PropertyKey, unknown>;
 
 //
 // To run:
-// deno run ./data_source/example.ts
+// deno run -A ./data_source/example.ts
 //
 if (import.meta.main) {
   const inMemoryDataSource = new InMemoryDataSource();
-  const dataSource = new MultiplexedDataSource(
-    new Map([["person", inMemoryDataSource]]),
+  const fsDataSource = new FSDataSource(
+    (type: string, name?: string) => `./${type}${name ? `/${name}.json` : ""}`,
+    { text: (item) => JSON.stringify(item, null, 2) + "\n" },
+    { text: (item) => JSON.parse(item) },
   );
-  const service = new ItemDrive<{ person: typeof personSchema }>(dataSource);
-  service.setItem(
+  const dataSource = MultiplexedDataSource.fromDataSources([
+    ["person", inMemoryDataSource],
+    ["note", fsDataSource],
+  ]);
+  const itemDrive = new ItemDrive<{
+    person: typeof personSchema;
+    note: typeof noteSchema;
+  }>(dataSource);
+
+  itemDrive.setItem(
     "person",
     "alice",
     { name: "Alice", age: 42 },
   );
-  const item = service.getItem("person", "alice");
+  const item = itemDrive.getItem("person", "alice");
   console.log({ item });
+
+  itemDrive.setItem("note", "alice", { text: "Hello, world!" });
+  const note = itemDrive.getItem("note", "alice");
+  console.log({ note });
 }
 
 //

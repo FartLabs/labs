@@ -15,30 +15,27 @@ export class ItemDrive<TItemDriveSchema extends ItemDriveSchema> {
     name: string,
     item: TItemDriveSchema[TType],
   ) {
-    this.dataSource.setItem(type, name, item);
+    this.dataSource.setItem(type.toString(), name, item);
   }
 
   public setItems<TType extends keyof TItemDriveSchema>(
     type: TType,
     items: Array<[string, TItemDriveSchema[TType]]>,
   ) {
-    this.dataSource.setItems(type, items);
+    this.dataSource.setItems(type.toString(), items);
   }
 
   public getItem<TType extends keyof TItemDriveSchema>(
     type: TType,
     name: string,
   ) {
-    return this.dataSource.getItem<TType, TItemDriveSchema[TType]>(
-      type,
-      name,
-    );
+    return this.dataSource.getItem(type.toString(), name);
   }
 
   public getItems<TType extends keyof TItemDriveSchema>(
     type: TType,
   ): Array<[string, TItemDriveSchema[TType]]> {
-    return this.dataSource.getItems(type) as Array<
+    return this.dataSource.getItems(type.toString()) as Array<
       [string, TItemDriveSchema[TType]]
     >;
   }
@@ -47,12 +44,12 @@ export class ItemDrive<TItemDriveSchema extends ItemDriveSchema> {
     type: TType,
     name: string,
   ) {
-    this.dataSource.deleteItem(type, name);
+    this.dataSource.deleteItem(type.toString(), name);
   }
 
   public deleteItems<TType extends keyof TItemDriveSchema>(
     type: TType,
   ) {
-    this.dataSource.deleteItems(type);
+    this.dataSource.deleteItems(type.toString());
   }
 }
