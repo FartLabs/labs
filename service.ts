@@ -1,4 +1,4 @@
-export class ItemDriveService<
+export class ItemDrive<
   T = unknown,
   TItemDriveSchema extends ItemDriveSchema<T> = {},
 > {
@@ -8,13 +8,13 @@ export class ItemDriveService<
   ) {}
 
   public setItemTypes<TAdditionalItemDriveSchema extends ItemDriveSchema<T>>(
-    schema: TAdditionalItemDriveSchema,
-  ): ItemDriveService<T, TItemDriveSchema & TAdditionalItemDriveSchema> {
+    schema: { [type in keyof TAdditionalItemDriveSchema]: T },
+  ): ItemDrive<T, TItemDriveSchema & TAdditionalItemDriveSchema> {
     for (const [type, typeSchema] of Object.entries(schema)) {
       this.setItemType(type, typeSchema);
     }
 
-    return this as unknown as ItemDriveService<
+    return this as unknown as ItemDrive<
       T,
       TItemDriveSchema & TAdditionalItemDriveSchema
     >;
@@ -22,14 +22,20 @@ export class ItemDriveService<
 
   public setItemType<
     TType extends string,
-    TItemSchema extends T,
-    TItem = TItemSchema,
+    TItem,
   >(
     type: TType,
-    schema: TItemSchema,
-  ): ItemDriveService<T, TItemDriveSchema & { [type in TType]: TItem }> {
+    schema: TItem,
+  ): ItemDrive<T, TItemDriveSchema & { [type in TType]: TItem }>;
+  public setItemType<
+    TType extends string,
+    TItem,
+  >(
+    type: TType,
+    schema: T,
+  ): ItemDrive<T, TItemDriveSchema & { [type in TType]: TItem }> {
     this.schemaStorage.set(type, schema);
-    return this as unknown as ItemDriveService<
+    return this as unknown as ItemDrive<
       T,
       TItemDriveSchema & { [type in TType]: TItem }
     >;
