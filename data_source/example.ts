@@ -3,6 +3,7 @@ import {
   InMemoryDataSource,
   ItemDrive,
   MultiplexedDataSource,
+  SynchronizedDataSource,
 } from "./mod.ts";
 
 const personSchema = {
@@ -19,6 +20,18 @@ const noteSchema = {
  */
 type ItemSchema = Record<PropertyKey, unknown>;
 
+/**
+ * NotesService is a service for managing notes.
+ */
+export class NotesService {
+  public constructor(
+    public readonly itemDrive: ItemDrive<{ note: typeof noteSchema }>,
+    // Import other services...
+  ) {}
+
+  // Expose methods for managing notes...
+}
+
 //
 // To run:
 // deno run -A ./data_source/example.ts
@@ -30,9 +43,13 @@ if (import.meta.main) {
     { text: (item) => JSON.stringify(item, null, 2) + "\n" },
     { text: (item) => JSON.parse(item) },
   );
+  const synchronizedDataSource = new SynchronizedDataSource([
+    inMemoryDataSource,
+    fsDataSource,
+  ]);
   const dataSource = MultiplexedDataSource.fromDataSources([
-    ["person", inMemoryDataSource],
-    ["note", fsDataSource],
+    ["person", synchronizedDataSource],
+    ["note", synchronizedDataSource],
   ]);
   const itemDrive = new ItemDrive<{
     person: typeof personSchema;
@@ -47,8 +64,9 @@ if (import.meta.main) {
   const item = itemDrive.getItem("person", "alice");
   console.log({ item });
 
-  itemDrive.setItem("note", "alice", { text: "Hello, world!" });
-  const note = itemDrive.getItem("note", "alice");
+  const notesService = new NotesService(itemDrive);
+  notesService.itemDrive.setItem("note", "alice", { text: "Hello, world!" });
+  const note = notesService.itemDrive.getItem("note", "alice");
   console.log({ note });
 }
 
