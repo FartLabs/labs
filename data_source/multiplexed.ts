@@ -5,27 +5,28 @@ export class MultiplexedDataSource implements DataSource {
     private readonly dataSources: Map<PropertyKey, DataSource>,
   ) {}
 
-  public getItem<TType extends PropertyKey, TItem>(
+  private getDataSource<TType extends PropertyKey>(
     type: TType,
-    name: string,
-  ): TItem | undefined {
+  ): DataSource {
     const dataSource = this.dataSources.get(type);
     if (!dataSource) {
       throw new Error(`Unknown data source: ${type.toString()}`);
     }
 
-    return dataSource?.getItem(type, name);
+    return dataSource;
+  }
+
+  public getItem<TType extends PropertyKey, TItem>(
+    type: TType,
+    name: string,
+  ): TItem | undefined {
+    return this.getDataSource(type).getItem(type, name);
   }
 
   public getItems<TType extends PropertyKey, TItem>(
     type: TType,
   ): Array<[string, TItem]> {
-    const dataSource = this.dataSources.get(type);
-    if (!dataSource) {
-      throw new Error(`Unknown data source: ${type.toString()}`);
-    }
-
-    return dataSource.getItems(type);
+    return this.getDataSource(type).getItems(type);
   }
 
   public setItem<TType extends PropertyKey, TItem>(
@@ -33,23 +34,24 @@ export class MultiplexedDataSource implements DataSource {
     name: string,
     item: TItem,
   ) {
-    const dataSource = this.dataSources.get(type);
-    if (!dataSource) {
-      throw new Error(`Unknown data source: ${type.toString()}`);
-    }
-
-    dataSource.setItem(type, name, item);
+    this.getDataSource(type).setItem(type, name, item);
   }
 
   public setItems<TType extends PropertyKey, TItem>(
     type: TType,
     items: Array<[string, TItem]>,
   ) {
-    const dataSource = this.dataSources.get(type);
-    if (!dataSource) {
-      throw new Error(`Unknown data source: ${type.toString()}`);
-    }
+    this.getDataSource(type).setItems(type, items);
+  }
 
-    dataSource.setItems(type, items);
+  public deleteItem<TType extends PropertyKey>(
+    type: TType,
+    name: string,
+  ): void {
+    this.getDataSource(type).deleteItem(type, name);
+  }
+
+  public deleteItems<TType extends PropertyKey>(type: TType): void {
+    this.getDataSource(type).deleteItems(type);
   }
 }

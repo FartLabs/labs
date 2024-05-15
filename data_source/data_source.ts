@@ -18,7 +18,11 @@ export interface DataSource {
     type: TType,
     items: Array<[string, TItem]>,
   ): void;
+  deleteItem<TType extends PropertyKey>(
+    type: TType,
+    name: string,
+  ): void;
+  deleteItems<TType extends PropertyKey>(
+    type: TType,
+  ): void;
 }
-
-// TODO: Compose item drives of various data sources e.g. filesystem, database, in-memory, etc.
-// Note: Item drives of different data sources must have the same standard schema type to be composed.

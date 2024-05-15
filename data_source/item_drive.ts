@@ -42,4 +42,17 @@ export class ItemDrive<TItemDriveSchema extends ItemDriveSchema> {
       [string, TItemDriveSchema[TType]]
     >;
   }
+
+  public deleteItem<TType extends keyof TItemDriveSchema>(
+    type: TType,
+    name: string,
+  ) {
+    this.dataSource.deleteItem(type, name);
+  }
+
+  public deleteItems<TType extends keyof TItemDriveSchema>(
+    type: TType,
+  ) {
+    this.dataSource.deleteItems(type);
+  }
 }

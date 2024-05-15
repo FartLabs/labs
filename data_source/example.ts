@@ -17,9 +17,7 @@ type ItemSchema = Record<PropertyKey, unknown>;
 if (import.meta.main) {
   const inMemoryDataSource = new InMemoryDataSource();
   const dataSource = new MultiplexedDataSource(
-    new Map([
-      ["person", inMemoryDataSource],
-    ]),
+    new Map([["person", inMemoryDataSource]]),
   );
   const service = new ItemDrive<{ person: typeof personSchema }>(dataSource);
   service.setItem(

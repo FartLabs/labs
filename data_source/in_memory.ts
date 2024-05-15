@@ -42,4 +42,15 @@ export class InMemoryDataSource implements DataSource {
     const itemMap = new Map(items);
     this.storage.set(type, itemMap);
   }
+
+  public deleteItem<TType extends PropertyKey>(
+    type: TType,
+    name: string,
+  ): void {
+    this.storage.get(type)?.delete(name);
+  }
+
+  public deleteItems<TType extends PropertyKey>(type: TType): void {
+    this.storage.delete(type);
+  }
 }
