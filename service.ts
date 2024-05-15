@@ -1,46 +1,54 @@
 export class ItemDriveService<
-  T extends ItemDriveSchema = {},
+  T = unknown,
+  TItemDriveSchema extends ItemDriveSchema<T> = {},
 > {
   public constructor(
-    private readonly schemaStorage: ItemSchemaStorage = new Map(),
+    private readonly schemaStorage: ItemSchemaStorage<T> = new Map(),
     private readonly itemStorage: ItemStorage = new Map(),
   ) {}
 
-  public setItemTypes<TItemDriveSchema extends ItemDriveSchema>(
-    schema: TItemDriveSchema,
-  ): ItemDriveService<T & TItemDriveSchema> {
+  public setItemTypes<TAdditionalItemDriveSchema extends ItemDriveSchema<T>>(
+    schema: TAdditionalItemDriveSchema,
+  ): ItemDriveService<T, TItemDriveSchema & TAdditionalItemDriveSchema> {
     for (const [type, typeSchema] of Object.entries(schema)) {
       this.setItemType(type, typeSchema);
     }
 
-    return this as unknown as ItemDriveService<T & TItemDriveSchema>;
+    return this as unknown as ItemDriveService<
+      T,
+      TItemDriveSchema & TAdditionalItemDriveSchema
+    >;
   }
 
   public setItemType<
     TType extends string,
-    TItemSchema extends ItemSchema,
+    TItemSchema extends T,
+    TItem = TItemSchema,
   >(
     type: TType,
     schema: TItemSchema,
-  ): ItemDriveService<T & { [type in TType]: TItemSchema }> {
+  ): ItemDriveService<T, TItemDriveSchema & { [type in TType]: TItem }> {
     this.schemaStorage.set(type, schema);
     return this as unknown as ItemDriveService<
-      T & { [type in TType]: TItemSchema }
+      T,
+      TItemDriveSchema & { [type in TType]: TItem }
     >;
   }
 
-  public getItemType<TType extends keyof T>(type: TType): T[TType] {
-    return this.schemaStorage.get(String(type)) as T[TType];
+  public getItemType<TType extends keyof TItemDriveSchema>(
+    type: TType,
+  ): TItemDriveSchema[TType] {
+    return this.schemaStorage.get(String(type)) as TItemDriveSchema[TType];
   }
 
-  public getItemTypes(): Array<[string, ItemSchema]> {
+  public getItemTypes(): Array<[string, unknown]> {
     return Array.from(this.schemaStorage.entries());
   }
 
-  public setItem<TType extends keyof T>(
+  public setItem<TType extends keyof TItemDriveSchema>(
     type: TType,
     name: string,
-    item: ItemOf<T[TType]>,
+    item: TItemDriveSchema[TType],
   ) {
     const items = this.itemStorage.get(String(type)) ?? new Map();
     this.itemStorage.set(
@@ -49,66 +57,36 @@ export class ItemDriveService<
     );
   }
 
-  public getItem<TType extends keyof T>(
+  public getItem<TType extends keyof TItemDriveSchema>(
     type: TType,
     name: string,
-  ): ItemOf<T[TType]> {
-    return this.itemStorage.get(String(type))?.get(name) as ItemOf<T[TType]>;
+  ): TItemDriveSchema[TType] {
+    return this.itemStorage.get(String(type))?.get(
+      name,
+    ) as TItemDriveSchema[TType];
   }
 
-  public getItems<TType extends keyof T>(
+  public getItems<TType extends keyof TItemDriveSchema>(
     type: TType,
-  ): Map<string, ItemOf<T[TType]>> {
-    return this.itemStorage.get(String(type)) as Map<string, ItemOf<T[TType]>>;
+  ): Map<string, TItemDriveSchema[TType]> {
+    return this.itemStorage.get(String(type)) as Map<
+      string,
+      TItemDriveSchema[TType]
+    >;
   }
 }
 
 /**
  * ItemStorage is a storage of items.
  */
-type ItemStorage = Map<string, Map<string, Item>>;
-
-/**
- * Item is an item.
- */
-type Item = Record<string, unknown>;
-
-/**
- * ItemOf is an item inferred from a schema.
- */
-export type ItemOf<TSchema extends ItemSchema = Record<PropertyKey, never>> = {
-  [propertyName in keyof TSchema]: PropertyTypeOf<TSchema[propertyName]>;
-};
+type ItemStorage = Map<string, Map<string, unknown>>;
 
 /**
  * ItemSchemaStorage is a storage of item schemas.
  */
-export type ItemSchemaStorage = Map<string, ItemSchema>;
+export type ItemSchemaStorage<T> = Map<string, T>;
 
 /**
  * ItemDriveSchema is a schema of an item drive.
  */
-export type ItemDriveSchema = Record<string, ItemSchema>;
-
-/**
- * ItemSchema is a schema of an item.
- */
-export type ItemSchema = Record<string, keyof PropertyTypeMap>;
-
-/**
- * PropertyTypeOf converts a schema property type to a TypeScript type.
- */
-export type PropertyTypeOf<TPropertyType extends keyof PropertyTypeMap> =
-  PropertyTypeMap[TPropertyType];
-
-/**
- * PropertyTypeMap is a map of schema property types to TypeScript types.
- */
-export interface PropertyTypeMap {
-  string: string;
-  number: number;
-  boolean: boolean;
-  "string[]": string[];
-  "number[]": number[];
-  "boolean[]": boolean[];
-}
+export type ItemDriveSchema<T> = Record<string, T>;
