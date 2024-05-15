@@ -1,4 +1,4 @@
-import { ItemDrive } from "./service.ts";
+import { InMemoryDataSource, ItemDrive } from "./service.ts";
 
 const personSchema = {
   name: "string",
@@ -6,7 +6,8 @@ const personSchema = {
 } satisfies ItemSchema;
 
 if (import.meta.main) {
-  const service = new ItemDrive()
+  const dataSource = new InMemoryDataSource();
+  const service = new ItemDrive(dataSource)
     .setItemType("person", personSchema);
   service.setItem(
     "person",
