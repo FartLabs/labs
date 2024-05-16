@@ -1,5 +1,7 @@
 import type { DataSource } from "./data_source.ts";
 
+// TODO: Roll back/retry operations on failure.
+
 export class SynchronizedDataSource implements DataSource {
   public constructor(
     private readonly dataSources: DataSource[],

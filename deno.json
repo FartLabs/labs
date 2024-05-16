@@ -1,5 +1,10 @@
 {
-  "imports": { "@std/cli": "jsr:@std/cli@^0.224.1", "labs/": "./" },
+  "imports": {
+    "@std/cli": "jsr:@std/cli@^0.224.1",
+    "json-schema": "npm:json-schema@^0.4.0",
+    "json-schema-to-typescript": "npm:json-schema-to-typescript@^14.0.4",
+    "labs/": "./"
+  },
   "tasks": {
     "generate": "deno run -Ar https://deno.land/x/generate/cli/main.ts gen.ts",
     "example": "deno run ./example/example.ts"

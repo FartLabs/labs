@@ -1,4 +1,4 @@
-import { DataSource } from "./data_source.ts";
+import { DataSource } from "../data_source/mod.ts";
 
 /**
  * ItemDriveSchema is a schema of an item drive.
