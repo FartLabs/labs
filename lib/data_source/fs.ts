@@ -2,17 +2,10 @@ import { DataSource } from "./data_source.ts";
 
 export class FSDataSource implements DataSource {
   public constructor(
-    private readonly path: (type: string, name?: string) => string,
-    private readonly encode?: ItemEncoder<unknown>,
-    private readonly decode?: ItemDecoder<unknown>,
+    private readonly path = jsonPath,
+    private readonly encode = makeJSONEncoder<unknown>(),
+    private readonly decode = makeJSONDecoder<unknown>(),
   ) {}
-
-  public get mode() {
-    return {
-      read: this.decode !== undefined,
-      write: this.encode !== undefined,
-    };
-  }
 
   public getItem<TType extends string, TItem>(
     type: TType,
@@ -62,6 +55,18 @@ export class FSDataSource implements DataSource {
   public deleteItems<TType extends string>(type: TType): void {
     Deno.removeSync(this.path(type));
   }
+}
+
+export function jsonPath(type: string, name?: string) {
+  return `./${type}${name ? `/${name}.json` : ""}`;
+}
+
+export function makeJSONDecoder<T>(): ItemDecoder<T> {
+  return { text: (text: string) => JSON.parse(text) as T };
+}
+
+export function makeJSONEncoder<T>(): ItemEncoder<T> {
+  return { text: (item: T) => JSON.stringify(item, null, 2) + "\n" };
 }
 
 export function readItem<T = unknown>(

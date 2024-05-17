@@ -22,26 +22,23 @@ if (import.meta.main) {
     viewService,
     referenceService,
   );
+  const servicesManager = new ServicesManager({
+    view: viewService,
+    reference: referenceService,
+    space: spaceService,
+    automation: automationService,
+  });
 
-  // TODO: Initialize home space.
-  // TODO: Print ui to console.
+  console.log("Initializing system... Available actions:");
+  servicesManager.actions.forEach(({ serviceName, actionName }, i) => {
+    const num = (i + 1).toString().padEnd(3, " ");
+    console.log(`${num} ${serviceName}.${actionName}`);
+  });
 
   const system = new System(
     itemDrive,
     automationService,
-    new ServicesManager({
-      view: viewService,
-      reference: referenceService,
-      space: spaceService,
-    }),
-    //  {
-    //   render(
-    //     componentName: string,
-    //     props?: Record<string, unknown>,
-    //     slots?: Record<string, View[]>,
-    //   ): void {
-    //   },
-    // },
+    servicesManager,
   );
 
   automationService.itemDrive.setItem("automation", "start-up", {
@@ -55,5 +52,11 @@ if (import.meta.main) {
       },
     ],
   });
-  system.automate({ automationName: "start-up" });
+
+  // TODO: Initialize home space.
+  // TODO: Print ui to console.
+  system.automate({
+    automationName: "start-up",
+    event: { eventType: "manual-dispatch", props: { actor: "system" } },
+  });
 }
