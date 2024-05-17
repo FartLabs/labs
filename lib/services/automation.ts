@@ -21,9 +21,31 @@ export interface Automation {
 export interface AutomationStep {
   name: string;
   description?: string;
-
-  // Consider replacing action expression with service+action name pair to simplify the system API e.g. no need for expression encoding and decoding.
-  // Determine how to invoke another automation as a step.
-  actionName: string;
+  run: AutomationRun;
   defaultState?: Record<string, unknown>;
+}
+
+export type AutomationRun =
+  | AutomationRunAction
+  | AutomationRunAutomation;
+
+export function isAutomationRunAction(
+  run: AutomationRun,
+): run is AutomationRunAction {
+  return (run as AutomationRunAction).service !== undefined;
+}
+
+export interface AutomationRunAction {
+  service: string;
+  action: string;
+}
+
+export function isAutomationRunAutomation(
+  run: AutomationRun,
+): run is AutomationRunAutomation {
+  return (run as AutomationRunAutomation).automation !== undefined;
+}
+
+export interface AutomationRunAutomation {
+  automation: string;
 }

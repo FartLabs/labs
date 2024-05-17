@@ -30,9 +30,9 @@ if (import.meta.main) {
     itemDrive,
     automationService,
     new ServicesManager({
-      viewService,
-      referenceService,
-      spaceService,
+      view: viewService,
+      reference: referenceService,
+      space: spaceService,
     }),
     //  {
     //   render(
@@ -50,9 +50,10 @@ if (import.meta.main) {
       {
         name: "start-up",
         // TODO: Replace action expression with pair of service name and action name.
-        actionName: "view.render",
+        run: { service: "view", action: "render" },
+        defaultState: { viewName: "home" },
       },
     ],
   });
-  system.automate({ automationName: "start-up", state: {} });
+  system.automate({ automationName: "start-up" });
 }

@@ -7,6 +7,10 @@ export class ViewService {
   public constructor(
     public readonly itemDrive: ItemDrive<{ view: View }>,
   ) {}
+
+  render(state: { viewName: string }): void {
+    console.log(`Rendering view ${state.viewName}.`);
+  }
 }
 
 /**
