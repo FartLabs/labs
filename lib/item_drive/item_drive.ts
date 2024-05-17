@@ -29,15 +29,16 @@ export class ItemDrive<TItemDriveSchema extends ItemDriveSchema> {
     type: TType,
     name: string,
   ) {
-    return this.dataSource.getItem(type.toString(), name);
+    return this.dataSource.getItem<string, TItemDriveSchema[TType]>(
+      type.toString(),
+      name,
+    );
   }
 
   public getItems<TType extends keyof TItemDriveSchema>(
     type: TType,
   ): Array<[string, TItemDriveSchema[TType]]> {
-    return this.dataSource.getItems(type.toString()) as Array<
-      [string, TItemDriveSchema[TType]]
-    >;
+    return this.dataSource.getItems(type.toString());
   }
 
   public deleteItem<TType extends keyof TItemDriveSchema>(
