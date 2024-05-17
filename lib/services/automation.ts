@@ -21,32 +21,9 @@ export interface Automation {
 export interface AutomationStep {
   name: string;
   description?: string;
-  action: AutomationAction;
-}
 
-/**
- * AutomationAction describes an action in an automation.
- */
-export interface AutomationAction {
-  name: string;
-  description?: string;
-  params?: AutomationActionParam[];
+  // Consider replacing action expression with service+action name pair to simplify the system API e.g. no need for expression encoding and decoding.
+  // Determine how to invoke another automation as a step.
+  actionName: string;
+  defaultState?: Record<string, unknown>;
 }
-
-/**
- * AutomationActionParam describes a parameter in an automation action.
- */
-export interface AutomationActionParam {
-  name: string;
-  description?: string;
-  type: AutomationActionParamType;
-}
-
-/**
- * AutomationActionParamType describes a type of an automation action parameter.
- */
-export type AutomationActionParamType =
-  | "string"
-  | "number"
-  | "boolean"
-  | "enum";
