@@ -40,8 +40,8 @@ export class System {
 
       if (isAutomationRunAction(step.run)) {
         this.servicesManager.executeAction(
-          step.run.service,
-          step.run.action,
+          step.run.serviceName,
+          step.run.actionName,
           state,
         );
       } else if (isAutomationRunAutomation(step.run)) {
@@ -81,4 +81,14 @@ export interface SystemTriggerEvent {
   eventType: string;
   props?: Record<string, unknown>; // Include ID of previous automation.
   from?: SystemTriggerEvent;
+}
+
+export interface SystemComponentRenderer {
+  (component: SystemComponent): void;
+}
+
+export interface SystemComponent {
+  componentName: string;
+  props: Record<string, unknown>;
+  children: SystemComponent[];
 }

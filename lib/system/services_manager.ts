@@ -1,3 +1,4 @@
+// TODO: Rename to SystemServicesManager.
 export class ServicesManager {
   public constructor(
     private readonly services: Services = {},
@@ -31,9 +32,9 @@ export class ServicesManager {
   }
 
   /**
-   * actions lists the actions that can be executed.
+   * getActions lists the actions that can be executed.
    */
-  public get actions(): ActionID[] {
+  public getActions(): ActionID[] {
     return getActionsFromServices(this.services, this.filterAction);
   }
 }

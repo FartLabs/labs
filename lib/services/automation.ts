@@ -1,4 +1,5 @@
 import type { ItemDrive } from "labs/lib/item_drive/mod.ts";
+import { ActionID } from "labs/lib/system/services_manager.ts";
 
 export class AutomationService {
   public constructor(
@@ -19,7 +20,7 @@ export interface Automation {
  * AutomationStep describes a step in an automation.
  */
 export interface AutomationStep {
-  name: string;
+  name?: string;
   description?: string;
   run: AutomationRun;
   defaultState?: Record<string, unknown>;
@@ -32,13 +33,11 @@ export type AutomationRun =
 export function isAutomationRunAction(
   run: AutomationRun,
 ): run is AutomationRunAction {
-  return (run as AutomationRunAction).service !== undefined;
+  return (run as AutomationRunAction).serviceName !== undefined &&
+    (run as AutomationRunAction).actionName !== undefined;
 }
 
-export interface AutomationRunAction {
-  service: string;
-  action: string;
-}
+export type AutomationRunAction = ActionID;
 
 export function isAutomationRunAutomation(
   run: AutomationRun,
