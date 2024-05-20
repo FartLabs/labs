@@ -1,0 +1,38 @@
+{
+  "version": "3",
+  "packages": {
+    "specifiers": {
+      "jsr:@fartlabs/jsonx@^0.0.10": "jsr:@fartlabs/jsonx@0.0.10",
+      "jsr:@std/collections@^0.220.1": "jsr:@std/collections@0.220.1",
+      "npm:json-schema@^0.4.0": "npm:json-schema@0.4.0"
+    },
+    "jsr": {
+      "@fartlabs/jsonx@0.0.10": {
+        "integrity": "d873aae5c68f97543683b91598c9307f1541063c9f2f62a9f50583deea8a30ee",
+        "dependencies": [
+          "jsr:@std/collections@^0.220.1"
+        ]
+      },
+      "@std/collections@0.220.1": {
+        "integrity": "5820a8d7f69ef93af6807249dfa4be5b97ebf8654c587826612744cf7ae57ef2"
+      }
+    },
+    "npm": {
+      "json-schema@0.4.0": {
+        "integrity": "sha512-es94M3nTIfsEPisRafak+HDLfHXnKBhV3vU5eqPcS3flIWqcxJWgXHXiey3YrpaNsanY5ei1VoYEbOzijuq9BA==",
+        "dependencies": {}
+      }
+    }
+  },
+  "remote": {},
+  "workspace": {
+    "dependencies": [
+      "jsr:@fartlabs/htx@^0.0.3",
+      "jsr:@fartlabs/jsonx@^0.0.10",
+      "jsr:@fartlabs/rtx@^0.0.3",
+      "jsr:@std/cli@^0.224.1",
+      "npm:json-schema-to-typescript@^14.0.4",
+      "npm:json-schema@^0.4.0"
+    ]
+  }
+}

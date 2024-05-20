@@ -1,9 +1,16 @@
 {
   "imports": {
+    "@fartlabs/htx": "jsr:@fartlabs/htx@^0.0.3",
+    "@fartlabs/jsonx": "jsr:@fartlabs/jsonx@^0.0.10",
+    "@fartlabs/rtx": "jsr:@fartlabs/rtx@^0.0.3",
     "@std/cli": "jsr:@std/cli@^0.224.1",
     "json-schema": "npm:json-schema@^0.4.0",
     "json-schema-to-typescript": "npm:json-schema-to-typescript@^14.0.4",
     "labs/": "./"
+  },
+  "compilerOptions": {
+    "jsx": "react-jsx",
+    "jsxImportSource": "@fartlabs/jsonx"
   },
   "tasks": {
     "generate": "deno run -Ar https://deno.land/x/generate/cli/main.ts gen.ts",
