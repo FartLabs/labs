@@ -1,13 +1,14 @@
 // import { ItemDrive } from "labs/lib/item_drive/item_drive.ts";
 // import { View } from "labs/lib/services/view.ts";
-import { RuntimeView } from "./view_runtime.ts";
+import { RuntimeView, ViewRenderer } from "./view_renderer.ts";
 import { P } from "@fartlabs/htx";
 
-// TODO: Diagram relationship between view, view runtime, runtime view, and component.
+// TODO: Diagram relationship between view, view runtime, runtime view, slot, and component.
 
-export class ViewRuntime {
+export class HTMLViewRenderer implements ViewRenderer {
   public constructor(
-    public readonly componentProvider: ComponentProvider,
+    public readonly componentProvider: ComponentProvider =
+      new HTMLComponentProvider(),
   ) {}
 
   public render(runtimeView: RuntimeView) {
@@ -22,9 +23,9 @@ export class ViewRuntime {
     const props = composeValues(
       runtimeView?.defaultProps,
       runtimeView?.props,
-      { slots },
+      slots ? { slots } : undefined,
     );
-    return <HTMLComponent component={component} props={props} />;
+    return component(props);
   }
 }
 
@@ -47,18 +48,11 @@ export class HTMLComponentProvider implements ComponentProvider {
   }
 }
 
-const htmlComponents: Record<string, Component> = { Paragraph };
-
 interface ComponentProvider {
   getComponent(componentName: string): Component | undefined;
 }
 
-/**
- * HTMLComponent is a runtime for rendering views with HTML components.
- */
-export function HTMLComponent(props: { component: Component; props?: Props }) {
-  return props.component(props.props);
-}
+const htmlComponents: Record<string, Component> = { Paragraph };
 
 /**
  * Paragraph renders an HTML paragraph.
@@ -67,6 +61,8 @@ export function Paragraph(props: { text: string }) {
   return <P>{props.text}</P>;
 }
 
+// deno-lint-ignore no-explicit-any
 type Component = (props: Props) => any;
 
+// deno-lint-ignore no-explicit-any
 type Props = any;

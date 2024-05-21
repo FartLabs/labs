@@ -1,12 +1,18 @@
 import type { ItemDrive } from "labs/lib/item_drive/mod.ts";
+import { RuntimeView, ViewRenderer } from "labs/lib/view_renderer/mod.ts";
 
 /**
  * ViewService is a service for managing views.
  */
-export class ViewService {
+export class ViewService implements ViewRenderer {
   public constructor(
     public readonly itemDrive: ItemDrive<{ view: View }>,
+    public readonly viewRenderer: ViewRenderer,
   ) {}
+
+  public render(runtimeView: RuntimeView): unknown {
+    return this.viewRenderer.render(runtimeView);
+  }
 }
 
 /**

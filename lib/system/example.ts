@@ -5,8 +5,14 @@ import { Reference, ReferenceService } from "labs/lib/services/reference.ts";
 import { Space, SpaceService } from "labs/lib/services/space.ts";
 import { View, ViewService } from "labs/lib/services/view.ts";
 import { Automation, AutomationService } from "labs/lib/services/automation.ts";
-import { ActionID, ServicesManager, System } from "./mod.ts";
-import { SystemIO } from "labs/lib/system/system_io.ts";
+import { System } from "./system.ts";
+import { ServicesManager } from "./services_manager.ts";
+import {
+  fromActionID,
+  makeRenderAutomation,
+  withStep,
+} from "labs/lib/system/automations.ts";
+import { HTMLViewRenderer } from "labs/lib/view_renderer/mod.ts";
 
 if (import.meta.main) {
   console.log("Initializing system...");
@@ -18,7 +24,8 @@ if (import.meta.main) {
     view: View;
     automation: Automation;
   }>(dataSource);
-  const viewService = new ViewService(itemDrive);
+  const htmlRenderer = new HTMLViewRenderer();
+  const viewService = new ViewService(itemDrive, htmlRenderer);
   const referenceService = new ReferenceService(itemDrive);
   const automationService = new AutomationService(itemDrive);
   const spaceService = new SpaceService(
@@ -32,14 +39,23 @@ if (import.meta.main) {
     space: spaceService,
     automation: automationService,
   });
-
   const actions = servicesManager.getActions();
-  const automations = getAutomationsFromActions(actions);
+  const actionAutomations = actions.map((action) => fromActionID(action));
+  const automations = [
+    ...actionAutomations,
+    // Append render step to each action automation.
+    // Target specific action to render views.
+    makeRenderAutomation({ serviceName: "view", actionName: "render" }),
+    ...actionAutomations.map((automation) =>
+      withStep(automation, { run: { automation: "render" } })
+    ),
+  ].toSorted((a, b) => a.name.localeCompare(b.name));
+
   automationService.itemDrive.setItems(
     "automation",
     automations.map((automation) => [automation.name, automation]),
   );
-  console.log(`${actions.length} actions initialized.`);
+  console.log(`${automations.length} automations loaded.`);
 
   // TODO: Refactor SystemIO to SystemAdapter that wraps a System.
   const system = new System(
@@ -48,93 +64,27 @@ if (import.meta.main) {
     servicesManager,
   );
 
-  interface CLIEvent {
-    automationName: string;
-  }
-
-  // TODO: Abstract away the SystemIO class.
-  const systemIO = new SystemIO(
-    (event: CLIEvent) => {
-      const automation = automationService.itemDrive.getItem(
-        "automation",
-        event.automationName,
-      );
-      const action = console.log(
-        `Triggering action ${action.serviceName}.${action.actionName}.`,
-      );
-
-      // Actions should be a list of actions and automations.
-      const isAction = true;
-      if (isAction) {
-        return servicesManager.executeAction(
-          action.serviceName,
-          action.actionName,
-          {},
-        );
-      } else {
-        return system.automate({});
-      }
-    },
-    (output) => {
-      console.log({ output });
-      return Promise.resolve();
-    },
-  );
+  printAutomations(automations);
 
   while (true) {
-    const automations = automationService.itemDrive.getItems("automation")
-      .sort(([a], [b]) => a.localeCompare(b));
-    console.log("Automations:");
-    automations.forEach(([automationName], i) => {
-      const automationNumber = (i + 1).toString().padEnd(3, " ");
-      console.log(`${automationNumber} ${automationName}`);
-    });
-
-    const input = prompt("Enter automation number to execute:");
-    if (input === null) {
+    const trigger = promptTrigger(actions);
+    if (!trigger) {
       break;
     }
 
-    if (input === "" || input === "exit") {
-      console.log("Goodbye!");
-      break;
-    }
-
-    const automationIndex = parseInt(input) - 1;
-    const automation = automations[automationIndex];
-    if (automation === undefined) {
-      console.log("Invalid automation number.");
-      continue;
-    }
-
-    systemIO.handle({ code: automationIndex });
+    system.automate(trigger);
   }
-
-  // TODO: Initialize home space.
-  // TODO: Print ui to console.
-  // TODO: Move to on system on start up event and trigger it manually when system starts.
-  // system.automate({
-  //   automationName: "start-up",
-  //   event: { eventType: "manual-dispatch", props: { actor: "system" } },
-  // });
-
-  // for await (const output of systemIO.output()) {
-  //   console.log({ output });
-  // }
 }
 
-// System's automationService is a primary service for managing automations.
+function printAutomations(automations: Automation[]): void {
+  console.log("Automations:");
+  automations.forEach((automation, i) => printAutomation(automation, i));
+}
 
-// TODO: Define JSON interface that represents a system definition to be generated into TypeScript.
-
-// Inpirations:
-// LMS: Quizlet, Khan Academy
-// Research/knowledge: Wikipedia, Google Scholar
-// Productivity: Notion, Trello, GitHub
-
-function getAutomationsFromActions(actions: ActionID[]): Automation[] {
-  return actions.map((action) => ({
-    name: `${action.serviceName}.${action.actionName}`,
-    steps: [{ run: action }],
-  }));
+function printAutomation(automation: Automation, index: number): void {
+  const automationNumber = index.toString().padEnd(3, " ");
+  const description = automation.description
+    ? `: ${automation.description}`
+    : "";
+  console.log(`${automationNumber} ${automation.name}${description}`);
 }

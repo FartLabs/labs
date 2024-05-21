@@ -1,14 +1,14 @@
 import type { View } from "labs/lib/services/view.ts";
 
 /**
- * ViewRuntime represents the runtime environment for rendering views.
+ * ViewRenderer renders a view.
  */
-export interface ViewRuntime {
+export interface ViewRenderer {
   render(runtimeView: RuntimeView): unknown;
 }
 
 /**
- * View is data needed at runtime to render a view.
+ * RuntimeView is data needed at runtime to render a view.
  */
 export interface RuntimeView extends View {
   props?: Record<string, unknown>;

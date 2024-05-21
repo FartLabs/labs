@@ -48,7 +48,6 @@ export class System {
         this.automate({
           event: {
             eventType: "automation",
-            // TODO: Replace instances of 'state' with 'props'.
             props: { automation: step.run.automation },
             from: trigger.event,
           },
@@ -71,6 +70,7 @@ export interface ViewRenderer {
   ): void;
 }
 
+// TODO: Consolidate trigger and event into a single type, SystemEvent.
 export interface SystemTrigger {
   automationName: string;
   event: SystemTriggerEvent;
