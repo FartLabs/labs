@@ -18,23 +18,20 @@ export class System {
     // on app load, fetch new data from data sources and sync with item drives. trigger a rerender on update.
   ) {}
 
-  public automate(trigger: SystemTrigger): void {
+  public automate(event: SystemEvent): void {
     const automation = this.automationService.itemDrive.getItem(
       "automation",
-      trigger.automationName,
+      event.automationName,
     );
     if (!automation) {
-      throw new Error(`Automation ${trigger.automationName} not found.`);
+      throw new Error(`Automation ${event.automationName} not found.`);
     }
 
-    console.log(
-      `Automating ${trigger.automationName} triggered by ${trigger.event.eventType}.`,
-    );
-
-    // TODO: Handle inputs, outputs, and persistent state.
-    const state = { ...trigger.state };
+    // Consider storing outputs in an array to reference in later steps.
+    const state = { ...event.props };
     automation.steps.forEach((step) => {
       if (step.defaultState !== undefined) {
+        // TODO: Consider deep merge algorithm for composite values.
         Object.assign(state, step.defaultState);
       }
 
@@ -46,13 +43,9 @@ export class System {
         );
       } else if (isAutomationRunAutomation(step.run)) {
         this.automate({
-          event: {
-            eventType: "automation",
-            props: { automation: step.run.automation },
-            from: trigger.event,
-          },
           automationName: step.run.automation,
-          state,
+          props: state,
+          from: event,
         });
       }
     });
@@ -70,17 +63,10 @@ export interface ViewRenderer {
   ): void;
 }
 
-// TODO: Consolidate trigger and event into a single type, SystemEvent.
-export interface SystemTrigger {
+export interface SystemEvent {
   automationName: string;
-  event: SystemTriggerEvent;
-  state?: Record<string, unknown>;
-}
-
-export interface SystemTriggerEvent {
-  eventType: string;
-  props?: Record<string, unknown>; // Include ID of previous automation.
-  from?: SystemTriggerEvent;
+  props?: Record<string, unknown>;
+  from?: SystemEvent;
 }
 
 export interface SystemComponentRenderer {

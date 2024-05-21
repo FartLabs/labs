@@ -5,7 +5,7 @@ import { Reference, ReferenceService } from "labs/lib/services/reference.ts";
 import { Space, SpaceService } from "labs/lib/services/space.ts";
 import { View, ViewService } from "labs/lib/services/view.ts";
 import { Automation, AutomationService } from "labs/lib/services/automation.ts";
-import { System } from "./system.ts";
+import { System, SystemEvent } from "./system.ts";
 import { ServicesManager } from "./services_manager.ts";
 import {
   fromActionID,
@@ -67,13 +67,32 @@ if (import.meta.main) {
   printAutomations(automations);
 
   while (true) {
-    const trigger = promptTrigger(actions);
-    if (!trigger) {
+    const event = promptEvent(automations);
+    if (!event) {
       break;
     }
 
-    system.automate(trigger);
+    system.automate(event);
   }
+}
+
+function promptEvent(automations: Automation[]): SystemEvent | null {
+  const automationNumber = prompt(
+    "Enter automation number to run (or 'q' to quit):",
+  );
+  if (automationNumber === null || automationNumber === "q") {
+    return null;
+  }
+
+  const index = parseInt(automationNumber, 10);
+  if (Number.isNaN(index) || index < 0 || index >= automations.length) {
+    console.log("Invalid automation number.");
+    return promptEvent(automations);
+  }
+
+  const automation = automations[index];
+  const props = promptProps(automation); // TODO.
+  return { automationName: automation.name, props };
 }
 
 function printAutomations(automations: Automation[]): void {
