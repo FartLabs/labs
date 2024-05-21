@@ -29,6 +29,7 @@ export class HTMLViewRenderer implements ViewRenderer {
   }
 }
 
+// deno-lint-ignore no-explicit-any
 function composeValues(...values: any[]) {
   if (values.every((value) => value === undefined)) {
     return;

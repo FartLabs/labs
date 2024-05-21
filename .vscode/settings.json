@@ -15,5 +15,8 @@
   "[typescriptreact]": {
     "editor.defaultFormatter": "denoland.vscode-deno"
   },
-  "files.eol": "\n"
+  "files.eol": "\n",
+  "cSpell.words": [
+    "automations"
+  ]
 }
