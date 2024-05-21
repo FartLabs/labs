@@ -20,10 +20,10 @@ export interface Automation {
  * AutomationStep describes a step in an automation.
  */
 export interface AutomationStep {
+  run: AutomationRun;
   name?: string;
   description?: string;
-  run: AutomationRun;
-  defaultState?: Record<string, unknown>;
+  defaultProps?: Record<string, unknown>;
 }
 
 export type AutomationRun =

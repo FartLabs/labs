@@ -1,5 +1,4 @@
 import type { ItemDrive } from "labs/lib/item_drive/mod.ts";
-import type { View } from "labs/lib/services/view.ts";
 import {
   AutomationService,
   isAutomationRunAction,
@@ -27,45 +26,34 @@ export class System {
       throw new Error(`Automation ${event.automationName} not found.`);
     }
 
-    // Consider storing outputs in an array to reference in later steps.
-    const state = { ...event.props };
+    // Consider storing outputs in an array to reference by name in later steps.
+    const props = { ...(event.props || {}) };
     automation.steps.forEach((step) => {
-      if (step.defaultState !== undefined) {
-        // TODO: Consider deep merge algorithm for composite values.
-        Object.assign(state, step.defaultState);
+      if (step.defaultProps !== undefined) {
+        // Consider deep merge algorithm for composite states.
+        Object.assign(props, step.defaultProps);
       }
 
       if (isAutomationRunAction(step.run)) {
         this.servicesManager.executeAction(
           step.run.serviceName,
           step.run.actionName,
-          state,
+          props,
         );
       } else if (isAutomationRunAutomation(step.run)) {
         this.automate({
           automationName: step.run.automation,
-          props: state,
+          props,
           from: event,
         });
       }
     });
   }
-
-  // public addEventListener(eventName: string, listener: () => void): void {
-  // }
-}
-
-export interface ViewRenderer {
-  render(
-    componentName: string,
-    props?: Record<string, unknown>,
-    slots?: Record<string, View[]>,
-  ): void;
 }
 
 export interface SystemEvent {
   automationName: string;
-  props?: Record<string, unknown>;
+  props?: unknown;
   from?: SystemEvent;
 }
 
@@ -75,6 +63,6 @@ export interface SystemComponentRenderer {
 
 export interface SystemComponent {
   componentName: string;
-  props: Record<string, unknown>;
+  props: unknown;
   children: SystemComponent[];
 }

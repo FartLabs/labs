@@ -1,18 +1,18 @@
+// import { InMemoryDataSource } from "labs/lib/data_source/in_memory.ts";
 import { FSDataSource } from "labs/lib/data_source/fs.ts";
-import { InMemoryDataSource } from "labs/lib/data_source/in_memory.ts";
 import { ItemDrive } from "labs/lib/item_drive/mod.ts";
 import { Reference, ReferenceService } from "labs/lib/services/reference.ts";
 import { Space, SpaceService } from "labs/lib/services/space.ts";
 import { View, ViewService } from "labs/lib/services/view.ts";
 import { Automation, AutomationService } from "labs/lib/services/automation.ts";
-import { System, SystemEvent } from "./system.ts";
-import { ServicesManager } from "./services_manager.ts";
+import { ServicesManager, System, SystemEvent } from "labs/lib/system/mod.ts";
 import {
   fromActionID,
   makeRenderAutomation,
   withStep,
 } from "labs/lib/system/automations.ts";
 import { HTMLViewRenderer } from "labs/lib/view_renderer/mod.ts";
+import { parse } from "@std/yaml";
 
 if (import.meta.main) {
   console.log("Initializing system...");
@@ -41,13 +41,17 @@ if (import.meta.main) {
   });
   const actions = servicesManager.getActions();
   const actionAutomations = actions.map((action) => fromActionID(action));
+
   const automations = [
     ...actionAutomations,
     // Append render step to each action automation.
     // Target specific action to render views.
     makeRenderAutomation({ serviceName: "view", actionName: "render" }),
     ...actionAutomations.map((automation) =>
-      withStep(automation, { run: { automation: "render" } })
+      withStep(
+        { ...automation, name: `${automation.name} and render` },
+        { run: { automation: "render" } },
+      )
     ),
   ].toSorted((a, b) => a.name.localeCompare(b.name));
 
@@ -91,8 +95,27 @@ function promptEvent(automations: Automation[]): SystemEvent | null {
   }
 
   const automation = automations[index];
+  console.log(`Selected automation: ${automation.name}`);
   const props = promptProps(automation); // TODO.
   return { automationName: automation.name, props };
+}
+
+function promptProps(automation: Automation): unknown | null {
+  const propsString = prompt("Enter JSON or YAML props (or 'q' to quit):");
+  if (propsString === null || propsString === "q") {
+    return null;
+  }
+
+  if (propsString === "") {
+    return {};
+  }
+
+  try {
+    return parse(propsString);
+  } catch (error) {
+    console.error("Invalid JSON props:", error);
+    return promptProps(automation);
+  }
 }
 
 function printAutomations(automations: Automation[]): void {

@@ -1,17 +1,14 @@
-import { Automation, AutomationStep } from "labs/lib/services/automation.ts";
+import {
+  Automation,
+  AutomationRun,
+  AutomationStep,
+} from "labs/lib/services/automation.ts";
 import { ActionID } from "./services_manager.ts";
 
-export function makeRenderAutomation(
-  actionID: ActionID,
-  name = "render",
-): Automation {
-  return withActionIDStep(makeAutomation(name), actionID);
-}
-
 export function fromActionID(actionID: ActionID): Automation {
-  return withActionIDStep(
+  return withStep(
     makeAutomation(makeAutomationNameFromActionID(actionID)),
-    actionID,
+    { run: actionID },
   );
 }
 
@@ -23,13 +20,6 @@ export function makeAutomation(name: string): Automation {
   return { name, steps: [] };
 }
 
-export function withActionIDStep(
-  automation: Automation,
-  actionID: ActionID,
-): Automation {
-  return withStep(automation, { run: actionID });
-}
-
 export function withStep(
   automation: Automation,
   step: AutomationStep,
@@ -38,10 +28,9 @@ export function withStep(
   return automation;
 }
 
-// export function getAutomationsFromActionIDs(actionIDs: ActionID[]): Automation[] {
-//   // TODO: Generate automations that render view components from actions outputs.
-//   return actionIDs.map((actionID) => ({
-//     name: `${actionID.serviceName}.${actionID.actionName}`,
-//     steps: [{ run: actionID }],
-//   }));
-// }
+export function makeRenderAutomation(
+  run: AutomationRun,
+  name = "render",
+): Automation {
+  return withStep(makeAutomation(name), { run });
+}
