@@ -19,15 +19,17 @@ export class ListService {
     const listName = props.name ?? crypto.randomUUID();
     this.itemDrive.setItem("list", listName, { title: props.title });
     if (props.items !== undefined) {
-      this.appendListItems({ listName, items: props.items });
+      this.appendItems({ listName, items: props.items });
     }
   }
 
   public removeList(props: { name: string }) {
     this.itemDrive.deleteItem("list", props.name);
+    // TODO: Remove all references to items in the list.
   }
 
-  public appendListItems(
+  // Perhaps return the name of the list to rerender the list. Or add an automation step to rerender the list.
+  public appendItems(
     props: { listName: string; items: ReferenceItem[] },
   ) {
     for (const item of props.items) {
@@ -38,21 +40,11 @@ export class ListService {
     }
   }
 
-  // Perhaps return the name of the list to rerender the list.
-  public appendListItem(
-    props: { listName: string; type: string; name: string },
-  ) {
-    this.referenceService.directedReference(
-      { type: "list", name: props.listName },
-      { type: props.type, name: props.name },
-    );
-  }
-
-  public removeListItems(
+  public removeItems(
     props: { listName: string; items: ReferenceItem[] },
   ) {
     for (const item of props.items) {
-      this.removeListItem({
+      this.removeItem({
         listName: props.listName,
         type: item.type,
         name: item.name,
@@ -60,7 +52,7 @@ export class ListService {
     }
   }
 
-  public removeListItem(
+  public removeItem(
     props: { listName: string; type: string; name: string },
   ) {
     this.referenceService.directedDereference(

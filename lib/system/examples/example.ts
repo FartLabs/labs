@@ -98,7 +98,7 @@ function promptEvent(automations: Automation[]): SystemEvent | null {
     return null;
   }
 
-  const index = parseInt(automationNumber, 10);
+  const index = parseInt(automationNumber, 10) - 1;
   if (Number.isNaN(index) || index < 0 || index >= automations.length) {
     console.log("Invalid automation number.");
     return promptEvent(automations);
@@ -134,7 +134,7 @@ function printAutomations(automations: Automation[]): void {
 }
 
 function printAutomation(automation: Automation, index: number): void {
-  const automationNumber = index.toString().padEnd(3, " ");
+  const automationNumber = (index + 1).toString().padEnd(3, " ");
   const description = automation.description
     ? `: ${automation.description}`
     : "";
