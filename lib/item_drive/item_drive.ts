@@ -5,6 +5,8 @@ import { DataSource } from "../data_source/mod.ts";
  */
 export type ItemDriveSchema = Record<string, unknown>;
 
+// TODO: Create special item drive implementation for automatically updating properties of specific items such as created_at, updated_at, deleted_at, etc. Or common building blocks for items such as counters, etc.
+
 export class ItemDrive<TItemDriveSchema extends ItemDriveSchema> {
   public constructor(
     private readonly dataSource: DataSource,
