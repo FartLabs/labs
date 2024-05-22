@@ -1,4 +1,3 @@
-import { A } from "@fartlabs/htx";
 import type { ItemDrive } from "labs/lib/item_drive/mod.ts";
 import { ListService } from "labs/lib/services/list.ts";
 import { ReferenceItem } from "labs/lib/services/reference.ts";
@@ -15,26 +14,26 @@ export class OrderedListService {
   public addList(
     props: { name?: string; title: string; referenceItems?: ReferenceItem[] },
   ) {
-    const listName = props.name ?? crypto.randomUUID();
+    const name = props.name ?? crypto.randomUUID();
     this.listService.addList({
-      name: listName,
+      name,
       title: props.title,
       referenceItems: props.referenceItems,
     });
-    this.itemDrive.setItem("orderedList", listName, {
-      listName,
+    this.itemDrive.setItem("orderedList", name, {
+      name,
       referenceItems: props.referenceItems ?? [],
     });
   }
 
-  public getList(props: { listName: string }): OrderedList | undefined {
-    return this.itemDrive.getItem("orderedList", props.listName);
+  public getList(props: { name: string }): OrderedList | undefined {
+    return this.itemDrive.getItem("orderedList", props.name);
   }
 
   public indicesOf(
-    props: { listName: string; query: ReferenceItemQuery },
+    props: { name: string; query: ReferenceItemQuery },
   ) {
-    const list = this.itemDrive.getItem("orderedList", props.listName);
+    const list = this.itemDrive.getItem("orderedList", props.name);
     if (list === undefined) {
       return -1;
     }
@@ -48,9 +47,9 @@ export class OrderedListService {
   }
 
   public move(
-    props: { listName: string; from: number; to: number },
+    props: { name: string; from: number; to: number },
   ) {
-    const list = this.itemDrive.getItem("orderedList", props.listName);
+    const list = this.itemDrive.getItem("orderedList", props.name);
     if (list === undefined) {
       return;
     }
@@ -58,7 +57,7 @@ export class OrderedListService {
     const item = list.referenceItems[props.from];
     list.referenceItems.splice(props.from, 1);
     list.referenceItems.splice(props.to, 0, item);
-    this.itemDrive.setItem("orderedList", props.listName, list);
+    this.itemDrive.setItem("orderedList", props.name, list);
   }
 }
 
@@ -88,7 +87,7 @@ export function satisfiesReferenceItemQuery(
  * OrderedList represents a list of ordered items.
  */
 export interface OrderedList {
-  listName: string;
+  name: string;
   referenceItems: ReferenceItem[];
 }
 

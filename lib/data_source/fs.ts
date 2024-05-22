@@ -1,3 +1,4 @@
+import { ensureFileSync, existsSync } from "@std/fs";
 import { DataSource } from "./data_source.ts";
 
 export class FSDataSource implements DataSource {
@@ -19,10 +20,21 @@ export class FSDataSource implements DataSource {
   }
 
   public getItems<TType extends string, TItem>(
-    _type: TType,
+    type: TType,
   ): Array<[string, TItem]> {
-    // TODO: Implement with walkSync.
-    throw new Error("Not implemented");
+    const dir = this.path(type);
+    if (existsSync(dir, { isReadable: true, isDirectory: true })) {
+      return [];
+    }
+
+    return Array.from(Deno.readDirSync(dir), (entry) => {
+      const item = this.getItem<TType, TItem>(type, entry.name);
+      if (item === undefined) {
+        throw new Error(`Failed to read item ${entry.name} of type ${type}`);
+      }
+
+      return [entry.name, item];
+    });
   }
 
   public setItem<TType extends string, TItem>(
@@ -58,8 +70,12 @@ export class FSDataSource implements DataSource {
   }
 }
 
+export function jsonPathFromPrefix(prefix: string) {
+  return (type: string, name?: string) => `${prefix}${jsonPath(type, name)}`;
+}
+
 export function jsonPath(type: string, name?: string) {
-  return `./data/${type}${name ? `/${name}.json` : ""}`;
+  return `${type}${name ? `/${name}.json` : ""}`;
 }
 
 export function makeJSONDecoder<T>(): ItemDecoder<T> {
@@ -77,8 +93,7 @@ export function readItem<T = unknown>(
   decode: ItemDecoder<T>,
 ): T | undefined {
   const file = path(type, name);
-  // TODO: Replace with std existsSync.
-  if (!Deno.statSync(file).isFile) {
+  if (!existsSync(file, { isReadable: true, isFile: true })) {
     return undefined;
   }
 
@@ -102,10 +117,8 @@ export function writeItem<T = unknown>(
   type: string,
   encode: ItemEncoder<T>,
 ) {
-  const dir = path(type);
-  Deno.mkdirSync(dir, { recursive: true });
-
   const file = path(type, name);
+  ensureFileSync(file);
   if ("text" in encode) {
     const text = encode.text(item, name, type);
     Deno.writeTextFileSync(file, text);

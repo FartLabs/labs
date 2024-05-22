@@ -39,11 +39,14 @@ export class System {
           `Running action ${step.run.serviceName}.${step.run.actionName}`,
           props,
         );
-        this.servicesManager.executeAction(
+
+        const result = this.servicesManager.executeAction(
           step.run.serviceName,
           step.run.actionName,
           props,
         );
+
+        console.log(`Action result:`, result);
       } else if (isAutomationRunAutomation(step.run)) {
         this.automate({
           automationName: step.run.automation,

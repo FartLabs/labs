@@ -16,10 +16,10 @@ export class ListService {
   public addList(
     props: { name?: string; title: string; referenceItems?: ReferenceItem[] },
   ) {
-    const listName = props.name ?? crypto.randomUUID();
-    this.itemDrive.setItem("list", listName, { title: props.title });
+    const name = props.name ?? crypto.randomUUID();
+    this.itemDrive.setItem("list", name, { title: props.title });
     if (props.referenceItems !== undefined) {
-      this.appendItems({ listName, referenceItems: props.referenceItems });
+      this.appendItems({ name, referenceItems: props.referenceItems });
     }
   }
 
@@ -30,34 +30,30 @@ export class ListService {
 
   // Perhaps return the name of the list to rerender the list. Or add an automation step to rerender the list.
   public appendItems(
-    props: { listName: string; referenceItems: ReferenceItem[] },
+    props: { name: string; referenceItems: ReferenceItem[] },
   ) {
     for (const item of props.referenceItems) {
       this.referenceService.directedReference(
-        { type: "list", name: props.listName },
+        { type: "list", name: props.name },
         item,
       );
     }
   }
 
   public removeItems(
-    props: { listName: string; referenceItems: ReferenceItem[] },
+    props: { name: string; referenceItems: ReferenceItem[] },
   ) {
     for (const item of props.referenceItems) {
-      this.removeItem({
-        listName: props.listName,
-        type: item.type,
-        name: item.name,
-      });
+      this.removeItem({ name: props.name, referenceItem: item });
     }
   }
 
   public removeItem(
-    props: { listName: string; type: string; name: string },
+    props: { name: string; referenceItem: ReferenceItem },
   ) {
     this.referenceService.directedDereference(
-      { type: "list", name: props.listName },
-      { type: props.type, name: props.name },
+      { type: "list", name: props.name },
+      { type: props.referenceItem.type, name: props.referenceItem.name },
     );
   }
 }

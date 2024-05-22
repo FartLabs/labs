@@ -1,5 +1,5 @@
 // import { InMemoryDataSource } from "labs/lib/data_source/in_memory.ts";
-import { FSDataSource } from "labs/lib/data_source/fs.ts";
+import { FSDataSource, jsonPathFromPrefix } from "labs/lib/data_source/fs.ts";
 import { ItemDrive } from "labs/lib/item_drive/mod.ts";
 import { Reference, ReferenceService } from "labs/lib/services/reference.ts";
 import { Space, SpaceService } from "labs/lib/services/space.ts";
@@ -22,7 +22,7 @@ import { Todo, TodoService } from "labs/lib/services/todo.ts";
 
 if (import.meta.main) {
   console.log("Initializing system...");
-  const dataSource = new FSDataSource();
+  const dataSource = new FSDataSource(jsonPathFromPrefix("./_data/"));
   // TODO: Visualize graph of data sources, item drives, and services.
   const itemDrive = new ItemDrive<{
     reference: Reference;
@@ -95,6 +95,12 @@ if (import.meta.main) {
       name: "test-orderedList",
       referenceItems: [{ type: "todo", name: "test-todo" }],
     },
+  });
+
+  // TODO: Test out view rendering.
+  system.automate({
+    automationName: "orderedList.getList",
+    props: { name: "test-orderedList" },
   });
 
   // while (true) {
