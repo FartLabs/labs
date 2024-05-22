@@ -1,6 +1,8 @@
 import type { ItemDrive } from "labs/lib/item_drive/mod.ts";
 import { ActionID } from "labs/lib/system/services_manager.ts";
 
+// TODO: Create log service to store logs for automation runs.
+
 export class AutomationService {
   public constructor(
     public readonly itemDrive: ItemDrive<{ automation: Automation }>,

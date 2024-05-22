@@ -32,9 +32,9 @@ export class ServicesManager {
   }
 
   /**
-   * getActions lists the actions that can be executed.
+   * getActionIDs lists the actions that can be executed.
    */
-  public getActions(): ActionID[] {
+  public getActionIDs(): ActionID[] {
     return getActionsFromServices(this.services, this.filterAction);
   }
 }

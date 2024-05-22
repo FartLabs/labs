@@ -13,6 +13,11 @@ import {
 } from "labs/lib/system/automations.ts";
 import { HTMLViewRenderer } from "labs/lib/view_renderer/mod.ts";
 import { parse } from "@std/yaml";
+import { List, ListService } from "labs/lib/services/list.ts";
+import {
+  OrderedList,
+  OrderedListService,
+} from "labs/lib/services/ordered_list.ts";
 
 if (import.meta.main) {
   console.log("Initializing system...");
@@ -23,10 +28,13 @@ if (import.meta.main) {
     space: Space;
     view: View;
     automation: Automation;
+    list: List;
+    orderedList: OrderedList;
   }>(dataSource);
-  const htmlRenderer = new HTMLViewRenderer();
-  const viewService = new ViewService(itemDrive, htmlRenderer);
+  const viewService = new ViewService(itemDrive, new HTMLViewRenderer());
   const referenceService = new ReferenceService(itemDrive);
+  const listService = new ListService(itemDrive, referenceService);
+  const orderedListService = new OrderedListService(itemDrive, listService);
   const automationService = new AutomationService(itemDrive);
   const spaceService = new SpaceService(
     itemDrive,
@@ -38,18 +46,20 @@ if (import.meta.main) {
     reference: referenceService,
     space: spaceService,
     automation: automationService,
+    list: listService,
+    orderedList: orderedListService,
   });
-  const actions = servicesManager.getActions();
-  const actionAutomations = actions.map((action) => fromActionID(action));
-
+  const actionIDs = servicesManager.getActionIDs();
+  const actionAutomations = actionIDs.map((actionID) => fromActionID(actionID));
   const automations = [
     ...actionAutomations,
     // Append render step to each action automation.
     // Target specific action to render views.
     makeRenderAutomation({ serviceName: "view", actionName: "render" }),
+    // TODO: Figure out how this works to print views.
     ...actionAutomations.map((automation) =>
       withStep(
-        { ...automation, name: `${automation.name} and render` },
+        { ...automation, name: `${automation.name} then render` },
         { run: { automation: "render" } },
       )
     ),
