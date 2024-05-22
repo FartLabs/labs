@@ -16,8 +16,13 @@ export class TodoService {
     return this.itemDrive.getItem("todo", props.name);
   }
 
-  public set(props: { todoName: string; done: boolean }): void {
-    this.itemDrive.setItem("todo", name, { done: props.done });
+  public set(props?: { name?: string; done?: boolean }): void {
+    const name = props?.name ?? crypto.randomUUID();
+    this.itemDrive.setItem(
+      "todo",
+      name,
+      { done: props?.done ?? false },
+    );
   }
 }
 

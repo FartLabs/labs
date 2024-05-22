@@ -42,7 +42,7 @@ export class ReferenceService {
 }
 
 export function toReferenceName({ type, name, property }: ReferenceItem) {
-  return `${type}:${name}${property ? `:${property}` : ""}`;
+  return `${type}.${name}${property ? `.${property}` : ""}`;
 }
 
 export interface Reference {

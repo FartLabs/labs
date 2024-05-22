@@ -28,7 +28,7 @@ export class ServicesManager {
       throw new Error(`Action ${serviceName}.${actionName} not allowed.`);
     }
 
-    return action(state);
+    return action.call(service, state);
   }
 
   /**

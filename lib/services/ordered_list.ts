@@ -1,3 +1,4 @@
+import { A } from "@fartlabs/htx";
 import type { ItemDrive } from "labs/lib/item_drive/mod.ts";
 import { ListService } from "labs/lib/services/list.ts";
 import { ReferenceItem } from "labs/lib/services/reference.ts";
@@ -11,83 +12,76 @@ export class OrderedListService {
     public readonly listService: ListService,
   ) {}
 
-  public add(
-    props: { name?: string; title: string; items?: ReferenceItem[] },
+  public addList(
+    props: { name?: string; title: string; referenceItems?: ReferenceItem[] },
   ) {
     const listName = props.name ?? crypto.randomUUID();
     this.listService.addList({
       name: listName,
       title: props.title,
-      items: props.items,
+      referenceItems: props.referenceItems,
     });
     this.itemDrive.setItem("orderedList", listName, {
       listName,
-      items: [...(props.items ?? [])]
-        .map((item, index) => ({ ...item, index })),
+      referenceItems: props.referenceItems ?? [],
     });
   }
 
-  public get(props: { listName: string }): OrderedList | undefined {
+  public getList(props: { listName: string }): OrderedList | undefined {
     return this.itemDrive.getItem("orderedList", props.listName);
   }
 
-  public indexOf(
-    props: { listName: string; orderedItem: OrderedItem },
+  public indicesOf(
+    props: { listName: string; query: ReferenceItemQuery },
   ) {
     const list = this.itemDrive.getItem("orderedList", props.listName);
     if (list === undefined) {
       return -1;
     }
 
-    return list.items.findIndex(
-      (item) => matchItem(item, props.orderedItem),
-    );
-  }
-
-  public lastIndexOf(
-    props: { listName: string; orderedItem: OrderedItem },
-  ) {
-    const list = this.itemDrive.getItem("orderedList", props.listName);
-    if (list === undefined) {
-      return -1;
-    }
-
-    return list.items.findLastIndex((item) =>
-      matchItem(item, props.orderedItem)
-    );
+    return list.referenceItems
+      .map((
+        item,
+        index,
+      ) => (satisfiesReferenceItemQuery(item, props.query) ? index : -1))
+      .filter((index) => index !== -1);
   }
 
   public move(
-    props: { listName: string; orderedItem: OrderedItem; to: number },
+    props: { listName: string; from: number; to: number },
   ) {
     const list = this.itemDrive.getItem("orderedList", props.listName);
     if (list === undefined) {
       return;
     }
 
-    const itemIndex = this.indexOf({
-      listName: props.listName,
-      orderedItem: props.orderedItem,
-    });
-    if (itemIndex === -1) {
-      return;
-    }
-
-    const item = list.items[itemIndex];
-    list.items.splice(itemIndex, 1);
-    list.items.splice(props.to, 0, item);
-
-    // Correct the index of the items after the moved item moves.
-    for (let i = item.index; i < list.items.length; i++) {
-      list.items[i].index = i;
-    }
-
+    const item = list.referenceItems[props.from];
+    list.referenceItems.splice(props.from, 1);
+    list.referenceItems.splice(props.to, 0, item);
     this.itemDrive.setItem("orderedList", props.listName, list);
   }
 }
 
-function matchItem(a: OrderedItem, b: OrderedItem): boolean {
-  return a.type === b.type && a.name === b.name && a.property === b.property;
+export function satisfiesReferenceItemQuery(
+  item: ReferenceItem,
+  query: ReferenceItemQuery,
+) {
+  for (const property in query) {
+    if (
+      query[property as keyof ReferenceItemQuery] === undefined
+    ) {
+      continue;
+    }
+
+    if (
+      item[property as keyof ReferenceItem] !==
+        query[property as keyof ReferenceItemQuery]
+    ) {
+      return false;
+    }
+  }
+
+  return true;
 }
 
 /**
@@ -95,12 +89,10 @@ function matchItem(a: OrderedItem, b: OrderedItem): boolean {
  */
 export interface OrderedList {
   listName: string;
-  items: OrderedItem[];
+  referenceItems: ReferenceItem[];
 }
 
 /**
- * OrderedItem represents an item in an ordered list.
+ * ReferenceItemQuery represents a query for an item in an ordered list.
  */
-export interface OrderedItem extends ReferenceItem {
-  index: number;
-}
+export type ReferenceItemQuery = Partial<ReferenceItem>;

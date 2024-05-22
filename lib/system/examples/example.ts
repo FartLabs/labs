@@ -18,6 +18,7 @@ import {
   OrderedList,
   OrderedListService,
 } from "labs/lib/services/ordered_list.ts";
+import { Todo, TodoService } from "labs/lib/services/todo.ts";
 
 if (import.meta.main) {
   console.log("Initializing system...");
@@ -30,6 +31,7 @@ if (import.meta.main) {
     automation: Automation;
     list: List;
     orderedList: OrderedList;
+    todo: Todo;
   }>(dataSource);
   const viewService = new ViewService(itemDrive, new HTMLViewRenderer());
   const referenceService = new ReferenceService(itemDrive);
@@ -41,6 +43,7 @@ if (import.meta.main) {
     viewService,
     referenceService,
   );
+  const todoService = new TodoService(itemDrive);
   const servicesManager = new ServicesManager({
     view: viewService,
     reference: referenceService,
@@ -48,6 +51,7 @@ if (import.meta.main) {
     automation: automationService,
     list: listService,
     orderedList: orderedListService,
+    todo: todoService,
   });
   const actionIDs = servicesManager.getActionIDs();
   const actionAutomations = actionIDs.map((actionID) => fromActionID(actionID));
@@ -65,6 +69,7 @@ if (import.meta.main) {
     ),
   ].toSorted((a, b) => a.name.localeCompare(b.name));
 
+  // TODO: Delete deprecated automations.
   automationService.itemDrive.setItems(
     "automation",
     automations.map((automation) => [automation.name, automation]),
@@ -79,15 +84,27 @@ if (import.meta.main) {
   );
 
   printAutomations(automations);
+  // TODO: Validate props with jsonSchema referenced to the automation step.
+  system.automate({
+    automationName: "todo.set",
+    props: { name: "test-todo" },
+  });
+  system.automate({
+    automationName: "orderedList.addList",
+    props: {
+      name: "test-orderedList",
+      referenceItems: [{ type: "todo", name: "test-todo" }],
+    },
+  });
 
-  while (true) {
-    const event = promptEvent(automations);
-    if (!event) {
-      break;
-    }
+  // while (true) {
+  //   const event = promptEvent(automations);
+  //   if (!event) {
+  //     break;
+  //   }
 
-    system.automate(event);
-  }
+  //   system.automate(event);
+  // }
 }
 
 function promptEvent(automations: Automation[]): SystemEvent | null {

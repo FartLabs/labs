@@ -35,6 +35,10 @@ export class System {
       }
 
       if (isAutomationRunAction(step.run)) {
+        console.log(
+          `Running action ${step.run.serviceName}.${step.run.actionName}`,
+          props,
+        );
         this.servicesManager.executeAction(
           step.run.serviceName,
           step.run.actionName,

@@ -21,6 +21,7 @@ export class FSDataSource implements DataSource {
   public getItems<TType extends string, TItem>(
     _type: TType,
   ): Array<[string, TItem]> {
+    // TODO: Implement with walkSync.
     throw new Error("Not implemented");
   }
 
@@ -58,7 +59,7 @@ export class FSDataSource implements DataSource {
 }
 
 export function jsonPath(type: string, name?: string) {
-  return `./${type}${name ? `/${name}.json` : ""}`;
+  return `./data/${type}${name ? `/${name}.json` : ""}`;
 }
 
 export function makeJSONDecoder<T>(): ItemDecoder<T> {
@@ -76,6 +77,7 @@ export function readItem<T = unknown>(
   decode: ItemDecoder<T>,
 ): T | undefined {
   const file = path(type, name);
+  // TODO: Replace with std existsSync.
   if (!Deno.statSync(file).isFile) {
     return undefined;
   }
