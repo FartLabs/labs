@@ -42,7 +42,7 @@ export function isMirroredSourceCode(
  * MirroredSourceCode represents a source code that is mirrored from a remote source.
  */
 export interface MirroredSourceCode {
-  mirrored: TextSourceCode & RemoteSourceCode;
+  readonly mirrored: TextSourceCode & RemoteSourceCode;
 }
 
 /**
@@ -58,7 +58,7 @@ export function isRemoteSourceCode(
  * TextSourceCode represents a text source code.
  */
 export interface TextSourceCode {
-  text: string;
+  readonly text: string;
 }
 
 /**
@@ -74,9 +74,9 @@ export function isTextSourceCode(
  * RemoteSourceCode represents a source code that is fetched from a remote source.
  */
 export interface RemoteSourceCode {
-  remote: {
-    url: string;
-    range?: SourceCodeRange;
+  readonly remote: {
+    readonly url: string;
+    readonly range?: SourceCodeRange;
   };
 }
 
@@ -84,14 +84,14 @@ export interface RemoteSourceCode {
  * SourceCodeRange targets a multi-line range of source code.
  */
 export interface SourceCodeRange {
-  row: Range;
-  column?: Range;
+  readonly row: Range;
+  readonly column?: Range;
 }
 
 /**
  * Range is a pair of start and end values.
  */
 export interface Range {
-  start: number;
-  end: number;
+  readonly start: number;
+  readonly end: number;
 }

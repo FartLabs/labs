@@ -87,8 +87,8 @@ export function satisfiesReferenceItemQuery(
  * OrderedList represents a list of ordered items.
  */
 export interface OrderedList {
-  name: string;
-  referenceItems: ReferenceItem[];
+  readonly name: string;
+  readonly referenceItems: ReferenceItem[];
 }
 
 /**

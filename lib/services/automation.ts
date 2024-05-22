@@ -13,19 +13,19 @@ export class AutomationService {
  * Automation describes a reusable automation as a serializable object.
  */
 export interface Automation {
-  name: string;
-  description?: string;
-  steps: AutomationStep[];
+  readonly name: string;
+  readonly description?: string;
+  readonly steps: AutomationStep[];
 }
 
 /**
  * AutomationStep describes a step in an automation.
  */
 export interface AutomationStep {
-  run: AutomationRun;
-  name?: string;
-  description?: string;
-  defaultProps?: Record<string, unknown>;
+  readonly run: AutomationRun;
+  readonly name?: string;
+  readonly description?: string;
+  readonly defaultProps?: Record<string, unknown>;
 }
 
 export type AutomationRun =
@@ -48,5 +48,5 @@ export function isAutomationRunAutomation(
 }
 
 export interface AutomationRunAutomation {
-  automation: string;
+  readonly automation: string;
 }

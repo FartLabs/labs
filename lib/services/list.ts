@@ -62,5 +62,5 @@ export class ListService {
  * List represents a list of items.
  */
 export interface List {
-  title: string;
+  readonly title: string;
 }

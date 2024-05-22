@@ -13,5 +13,5 @@ export class TextService {
  * Text represents some text content.
  */
 export interface Text {
-  content: string;
+  readonly content: string;
 }

@@ -30,5 +30,5 @@ export class TodoService {
  * Todo represents a todo item.
  */
 export interface Todo {
-  done: boolean;
+  readonly done: boolean;
 }

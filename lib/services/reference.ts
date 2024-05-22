@@ -46,11 +46,11 @@ export function toReferenceName({ type, name, property }: ReferenceItem) {
 }
 
 export interface Reference {
-  references: ReferenceItem[];
+  readonly references: ReferenceItem[];
 }
 
 export interface ReferenceItem {
-  type: string;
-  name: string;
-  property?: string;
+  readonly type: string;
+  readonly name: string;
+  readonly property?: string;
 }

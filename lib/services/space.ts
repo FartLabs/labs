@@ -44,6 +44,6 @@ export class SpaceService {
  * Space is a collection of views.
  */
 export interface Space {
-  name: string;
-  description?: string;
+  readonly name: string;
+  readonly description?: string;
 }
