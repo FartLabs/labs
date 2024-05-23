@@ -7,6 +7,13 @@ export class VectorService {
   public constructor(
     public readonly itemDrive: ItemDrive<{ vector: Vector }>,
   ) {}
+
+  public plot(props: { name: string; vector: Vector }) {
+    this.itemDrive.setItem("vector", props.name, {
+      dimension: props.vector.dimension,
+      value: props.vector.value,
+    });
+  }
 }
 
 /**
