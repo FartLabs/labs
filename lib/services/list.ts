@@ -1,8 +1,4 @@
 import type { ItemDrive } from "labs/lib/item_drive/mod.ts";
-// import {
-//   ReferenceItem,
-//   ReferenceService,
-// } from "labs/lib/services/reference.ts";
 
 /**
  * ListService provides a service for managing lists of items.
@@ -18,18 +14,18 @@ export class ListService {
     const name = props?.name ?? crypto.randomUUID();
     const list: List = {
       title: props?.title,
-      items: collapseItems(props?.items ?? []),
+      items: collapseItems([], props?.items ?? [], collapseSum),
     };
     this.itemDrive.setItem("list", name, list);
     return list;
   }
 
-  public removeList(props: { name: string }): void {
+  public deleteList(props: { name: string }): void {
     this.itemDrive.deleteItem("list", props.name);
   }
 
   // Perhaps return the name of the list to rerender the list. Or add an automation step to rerender the list.
-  public addItems(props: { name: string; items: ListItem[] }) {
+  public addItems(props: { name: string; items: ListItem[] }): List {
     const existingList = this.itemDrive.getItem("list", props.name);
     if (existingList === undefined) {
       throw new Error(`list not found: ${props.name}`);
@@ -37,12 +33,23 @@ export class ListService {
 
     const list: List = {
       title: existingList.title,
-      items: collapseItems([...existingList.items, ...props.items]),
+      items: collapseItems(existingList.items, props.items, collapseSum),
     };
     this.itemDrive.setItem("list", props.name, list);
+    return list;
   }
 
   public deleteItems(props: { name: string; items: ListItem[] }) {
+    const existingList = this.itemDrive.getItem("list", props.name);
+    if (existingList === undefined) {
+      throw new Error(`list not found: ${props.name}`);
+    }
+
+    const list: List = {
+      title: existingList.title,
+      items: collapseItems(existingList.items, props.items, collapseDifference),
+    };
+    this.itemDrive.setItem("list", props.name, list);
   }
 }
 
@@ -54,21 +61,23 @@ export interface List {
   readonly items: ListItem[];
 }
 
-// The opposite of "collapse" is "expand". The function "expandItems" is missing.
-
 /**
  * collapseItems collapses the duplicate items in a list.
  */
-export function collapseItems(items: ListItem[]): ListItem[] {
+export function collapseItems(
+  results: ListItem[],
+  items: ListItem[],
+  collapse: Collapse,
+): ListItem[] {
   if (items.length === 0) {
     return items;
   }
 
   const lookup = new Map<string, number>();
-  return items.reduce<ListItem[]>((collapsed, item) => {
+  return items.reduce((collapsed, item) => {
     const itemString = stringifyItem(item);
     const existingIndex = lookup.get(itemString);
-    collapseItem(collapsed, item, existingIndex);
+    collapseItem(collapsed, item, collapse, existingIndex);
     if (existingIndex !== undefined) {
       return collapsed;
     }
@@ -76,7 +85,7 @@ export function collapseItems(items: ListItem[]): ListItem[] {
     collapsed.push(item);
     lookup.set(itemString, collapsed.length - 1);
     return collapsed;
-  }, []);
+  }, results);
 }
 
 /**
@@ -85,6 +94,7 @@ export function collapseItems(items: ListItem[]): ListItem[] {
 export function collapseItem(
   items: ListItem[],
   item: ListItem,
+  collapse: Collapse,
   at?: number,
 ): void {
   if (at === undefined) {
@@ -95,11 +105,34 @@ export function collapseItem(
   items[at] = {
     name: items[at].name,
     type: items[at].type,
-    quantity: (items[at].quantity ?? 1) + (item.quantity ?? 1),
+    quantity: collapse(items[at].quantity ?? 1, item.quantity ?? 1),
   };
 }
 
-// TODO: Use this function to pass a custom quantity operation to the collapseItems function.
+collapseSum satisfies Collapse;
+
+function collapseSum(q1: number, q2: number): number {
+  if (!Number.isSafeInteger(q1) || !Number.isSafeInteger(q2)) {
+    throw new Error("quantity is not an integer");
+  }
+
+  return q1 + q2;
+}
+
+collapseDifference satisfies Collapse;
+
+function collapseDifference(q1: number, q2: number): number {
+  if (!Number.isSafeInteger(q1) || !Number.isSafeInteger(q2)) {
+    throw new Error("quantity is not an integer");
+  }
+
+  if (q1 < q2) {
+    throw new Error("quantity cannot be negative");
+  }
+
+  return q1 - q2;
+}
+
 type Collapse = (q1: number, q2: number) => number | undefined;
 
 /**
