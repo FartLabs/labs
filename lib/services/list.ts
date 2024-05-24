@@ -1,8 +1,8 @@
 import type { ItemDrive } from "labs/lib/item_drive/mod.ts";
-import {
-  ReferenceItem,
-  ReferenceService,
-} from "labs/lib/services/reference.ts";
+// import {
+//   ReferenceItem,
+//   ReferenceService,
+// } from "labs/lib/services/reference.ts";
 
 /**
  * ListService provides a service for managing lists of items.
@@ -10,51 +10,39 @@ import {
 export class ListService {
   public constructor(
     public readonly itemDrive: ItemDrive<{ list: List }>,
-    public readonly referenceService: ReferenceService,
   ) {}
 
   public addList(
-    props: { name?: string; title: string; referenceItems?: ReferenceItem[] },
-  ) {
-    const name = props.name ?? crypto.randomUUID();
-    this.itemDrive.setItem("list", name, { title: props.title });
-    // if (props.referenceItems !== undefined) {
-    //   this.appendItems({ name, referenceItems: props.referenceItems });
-    // }
+    props?: { name?: string; title?: string; items?: ListItem[] },
+  ): List {
+    const name = props?.name ?? crypto.randomUUID();
+    const list: List = {
+      title: props?.title,
+      items: collapseItems(props?.items ?? []),
+    };
+    this.itemDrive.setItem("list", name, list);
+    return list;
   }
 
-  public removeList(props: { name: string }) {
+  public removeList(props: { name: string }): void {
     this.itemDrive.deleteItem("list", props.name);
-    // TODO: Remove all references to items in the list.
   }
 
   // Perhaps return the name of the list to rerender the list. Or add an automation step to rerender the list.
-  public appendItems(
-    props: { name: string; referenceItems: ReferenceItem[] },
-  ) {
-    for (const item of props.referenceItems) {
-      this.referenceService.directedReference(
-        { type: "list", name: props.name },
-        item,
-      );
+  public addItems(props: { name: string; items: ListItem[] }) {
+    const existingList = this.itemDrive.getItem("list", props.name);
+    if (existingList === undefined) {
+      throw new Error(`list not found: ${props.name}`);
     }
+
+    const list: List = {
+      title: existingList.title,
+      items: collapseItems([...existingList.items, ...props.items]),
+    };
+    this.itemDrive.setItem("list", props.name, list);
   }
 
-  public removeItems(
-    props: { name: string; referenceItems: ReferenceItem[] },
-  ) {
-    for (const item of props.referenceItems) {
-      this.removeItem({ name: props.name, referenceItem: item });
-    }
-  }
-
-  public removeItem(
-    props: { name: string; referenceItem: ReferenceItem },
-  ) {
-    this.referenceService.directedDereference(
-      { type: "list", name: props.name },
-      { type: props.referenceItem.type, name: props.referenceItem.name },
-    );
+  public deleteItems(props: { name: string; items: ListItem[] }) {
   }
 }
 
@@ -64,6 +52,61 @@ export class ListService {
 export interface List {
   readonly title?: string;
   readonly items: ListItem[];
+}
+
+// The opposite of "collapse" is "expand". The function "expandItems" is missing.
+
+/**
+ * collapseItems collapses the duplicate items in a list.
+ */
+export function collapseItems(items: ListItem[]): ListItem[] {
+  if (items.length === 0) {
+    return items;
+  }
+
+  const lookup = new Map<string, number>();
+  return items.reduce<ListItem[]>((collapsed, item) => {
+    const itemString = stringifyItem(item);
+    const existingIndex = lookup.get(itemString);
+    collapseItem(collapsed, item, existingIndex);
+    if (existingIndex !== undefined) {
+      return collapsed;
+    }
+
+    collapsed.push(item);
+    lookup.set(itemString, collapsed.length - 1);
+    return collapsed;
+  }, []);
+}
+
+/**
+ * collapseItem collapses the duplicate items in a list.
+ */
+export function collapseItem(
+  items: ListItem[],
+  item: ListItem,
+  at?: number,
+): void {
+  if (at === undefined) {
+    items.push(item);
+    return;
+  }
+
+  items[at] = {
+    name: items[at].name,
+    type: items[at].type,
+    quantity: (items[at].quantity ?? 1) + (item.quantity ?? 1),
+  };
+}
+
+// TODO: Use this function to pass a custom quantity operation to the collapseItems function.
+type Collapse = (q1: number, q2: number) => number | undefined;
+
+/**
+ * stringifyItem returns a string representation of an item.
+ */
+export function stringifyItem(item: ListItem): string {
+  return `${item.type}.${item.name}`;
 }
 
 /**
