@@ -18,9 +18,9 @@ export class ListService {
   ) {
     const name = props.name ?? crypto.randomUUID();
     this.itemDrive.setItem("list", name, { title: props.title });
-    if (props.referenceItems !== undefined) {
-      this.appendItems({ name, referenceItems: props.referenceItems });
-    }
+    // if (props.referenceItems !== undefined) {
+    //   this.appendItems({ name, referenceItems: props.referenceItems });
+    // }
   }
 
   public removeList(props: { name: string }) {
@@ -62,5 +62,16 @@ export class ListService {
  * List represents a list of items.
  */
 export interface List {
-  readonly title: string;
+  readonly title?: string;
+  readonly items: ListItem[];
+}
+
+/**
+ * ListItem represents an item in a list. No two items in a list expect to
+ * share the same name.
+ */
+export interface ListItem {
+  readonly type: string;
+  readonly name: string;
+  readonly quantity?: number;
 }
