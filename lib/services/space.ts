@@ -3,15 +3,19 @@ import { View, ViewService } from "./view.ts";
 import { ReferenceService, toReferenceName } from "./reference.ts";
 import { VectorService } from "labs/lib/services/vector.ts";
 
+// A space references a list of items.
+// An item references a 2d vector in the space, a list of possible views, and the current view.
+
 /**
  * SpaceService is a service for managing spaces.
  */
 export class SpaceService {
   public constructor(
     public readonly itemDrive: ItemDrive<{ space: Space }>,
-    public readonly viewService: ViewService,
-    public readonly referenceService: ReferenceService,
-    public readonly vectorService: VectorService,
+    // public readonly ...
+    // public readonly viewService: ViewService,
+    // public readonly referenceService: ReferenceService,
+    // public readonly vectorService: VectorService,
     // TODO: Use vector service.
   ) {}
 
