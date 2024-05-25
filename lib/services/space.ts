@@ -12,7 +12,7 @@ import { VectorService } from "labs/lib/services/vector.ts";
 export class SpaceService {
   public constructor(
     public readonly itemDrive: ItemDrive<{ space: Space }>,
-    // public readonly ...
+    // TODO: public readonly referenceService: ReferenceService<{}>,
     // public readonly viewService: ViewService,
     // public readonly referenceService: ReferenceService,
     // public readonly vectorService: VectorService,

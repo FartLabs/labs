@@ -5,6 +5,9 @@ export class ReferenceService {
     public readonly itemDrive: ItemDrive<{ reference: Reference }>,
   ) {}
 
+  // TODO: Rethink semantics of reference operations.
+  // TODO: Explore how to use generic types for specialized reference services.
+
   public reference(a: ReferenceItem, b: ReferenceItem) {
     this.directedReference(a, b);
     this.directedReference(b, a);
