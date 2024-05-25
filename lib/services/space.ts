@@ -1,6 +1,6 @@
 import type { ItemDrive } from "labs/lib/item_drive/mod.ts";
 import { View, ViewService } from "./view.ts";
-import { ReferenceService, toReferenceName } from "./reference.ts";
+import { ReferenceService } from "./reference.ts";
 import { VectorService } from "labs/lib/services/vector.ts";
 
 // A space references a list of items.
@@ -12,7 +12,7 @@ import { VectorService } from "labs/lib/services/vector.ts";
 export class SpaceService {
   public constructor(
     public readonly itemDrive: ItemDrive<{ space: Space }>,
-    // TODO: public readonly referenceService: ReferenceService<{}>,
+    public readonly referenceService: ReferenceService<{}>,
     // public readonly viewService: ViewService,
     // public readonly referenceService: ReferenceService,
     // public readonly vectorService: VectorService,

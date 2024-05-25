@@ -1,4 +1,5 @@
 import type { ItemDrive } from "labs/lib/item_drive/mod.ts";
+import { Reference } from "labs/lib/services/reference.ts";
 
 /**
  * ListService provides a service for managing lists of items.
@@ -146,8 +147,6 @@ export function stringifyItem(item: ListItem): string {
  * ListItem represents an item in a list. No two items in a list expect to
  * share the same name.
  */
-export interface ListItem {
-  readonly type: string;
-  readonly name: string;
+export interface ListItem extends Reference {
   readonly quantity?: number;
 }

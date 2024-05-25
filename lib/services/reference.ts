@@ -1,59 +1,35 @@
 import type { ItemDrive } from "labs/lib/item_drive/mod.ts";
 
-export class ReferenceService {
+export class ReferenceService<
+  TReferenceServiceSchema extends ReferenceServiceSchema,
+> {
   public constructor(
     public readonly itemDrive: ItemDrive<{ reference: Reference }>,
   ) {}
 
-  // TODO: Rethink semantics of reference operations.
-  // TODO: Explore how to use generic types for specialized reference services.
-
-  public reference(a: ReferenceItem, b: ReferenceItem) {
-    this.directedReference(a, b);
-    this.directedReference(b, a);
-  }
-
-  public directedReference(a: ReferenceItem, b: ReferenceItem) {
-    const referenceName = toReferenceName(a);
-    const reference = this.itemDrive.getItem("reference", referenceName);
-    this.itemDrive.setItem(
-      "reference",
-      referenceName,
-      { references: (reference?.references ?? []).concat(b) },
-    );
-  }
-
-  public dereference(a: ReferenceItem, b: ReferenceItem) {
-    this.directedDereference(a, b);
-    this.directedDereference(b, a);
-  }
-
-  public directedDereference(a: ReferenceItem, b: ReferenceItem) {
-    const aName = toReferenceName(a);
-    const reference = this.itemDrive.getItem("reference", aName);
-    if (reference === undefined) {
-      return;
-    }
-
-    const bName = toReferenceName(b);
-    this.itemDrive.setItem("reference", aName, {
-      references: reference.references.filter(
-        (reference) => toReferenceName(reference) !== bName,
-      ),
-    });
+  public addReference(props: { name: string; item: Reference }): void {
+    this.itemDrive.setItem("reference", props.name, props.item);
   }
 }
 
-export function toReferenceName({ type, name, property }: ReferenceItem) {
-  return `${type}.${name}${property ? `.${property}` : ""}`;
+export interface ReferenceServiceSchema {
+  [reference: string]: string;
 }
 
-export interface Reference {
-  readonly references: ReferenceItem[];
-}
+// TODO: Do reference items need to be stored in a separate item drive?
 
-export interface ReferenceItem {
-  readonly type: string;
+/**
+ * ReferenceItem is a reference to an item.
+ */
+export interface ReferenceItem extends Reference {
   readonly name: string;
-  readonly property?: string;
+}
+
+// TODO: Add JSON schema for reference items.
+
+/**
+ * Reference is a reference to an item type.
+ */
+export interface Reference {
+  readonly type: string;
 }
