@@ -20,6 +20,10 @@ import {
 } from "labs/lib/services/ordered_list.ts";
 import { Todo, TodoService } from "labs/lib/services/todo.ts";
 
+// TODO: Create automation that gets all the references of an item and adds references to a list of items.
+// TODO: Create a type-safe mechanism to use within actions for referencing the given item drive with other item types.
+// Guarantees that the item drive has the expected name and types.
+
 if (import.meta.main) {
   console.log("Initializing system...");
   const dataSource = new FSDataSource(jsonPathFromPrefix("./_data/"));
@@ -32,6 +36,7 @@ if (import.meta.main) {
     list: List;
     orderedList: OrderedList;
     todo: Todo;
+    // TODO: Register UUID service.
   }>(dataSource);
   const viewService = new ViewService(itemDrive, new HTMLViewRenderer());
   const referenceService = new ReferenceService(itemDrive);
