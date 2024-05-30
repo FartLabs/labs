@@ -35,7 +35,7 @@ if (import.meta.main) {
   }>(dataSource);
   const viewService = new ViewService(itemDrive, new HTMLViewRenderer());
   const referenceService = new ReferenceService(itemDrive);
-  const listService = new ListService(itemDrive, referenceService);
+  const listService = new ListService(itemDrive);
   const orderedListService = new OrderedListService(itemDrive, listService);
   const automationService = new AutomationService(itemDrive);
   const spaceService = new SpaceService(
