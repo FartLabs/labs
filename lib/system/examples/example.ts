@@ -1,24 +1,24 @@
+import { parse } from "@std/yaml";
 // import { InMemoryDataSource } from "labs/lib/data_source/in_memory.ts";
 import { FSDataSource, jsonPathFromPrefix } from "labs/lib/data_source/fs.ts";
 import { ItemDrive } from "labs/lib/item_drive/mod.ts";
-import { Reference, ReferenceService } from "labs/lib/services/reference.ts";
-import { Space, SpaceService } from "labs/lib/services/space.ts";
-import { View, ViewService } from "labs/lib/services/view.ts";
-import { Automation, AutomationService } from "labs/lib/services/automation.ts";
+// import { Space, SpaceService } from "labs/lib/services/space.ts";
+// import { View, ViewService } from "labs/lib/services/view.ts";
+// import { HTMLViewRenderer } from "labs/lib/view_renderer/mod.ts";
 import { ServicesManager, System, SystemEvent } from "labs/lib/system/mod.ts";
 import {
   fromActionID,
   makeRenderAutomation,
   withStep,
 } from "labs/lib/system/automations.ts";
-import { HTMLViewRenderer } from "labs/lib/view_renderer/mod.ts";
-import { parse } from "@std/yaml";
+import { Automation, AutomationService } from "labs/lib/services/automation.ts";
 import { List, ListService } from "labs/lib/services/list.ts";
 import {
   OrderedList,
   OrderedListService,
 } from "labs/lib/services/ordered_list.ts";
 import { Todo, TodoService } from "labs/lib/services/todo.ts";
+import { UUID, UUIDService } from "labs/lib/services/uuid.ts";
 
 // TODO: Create automation that gets all the references of an item and adds references to a list of items.
 // TODO: Create a type-safe mechanism to use within actions for referencing the given item drive with other item types.
@@ -29,31 +29,18 @@ if (import.meta.main) {
   const dataSource = new FSDataSource(jsonPathFromPrefix("./_data/"));
   // TODO: Visualize graph of data sources, item drives, and services.
   const itemDrive = new ItemDrive<{
-    reference: Reference;
-    space: Space;
-    view: View;
     automation: Automation;
     list: List;
     orderedList: OrderedList;
     todo: Todo;
     // TODO: Register UUID service.
   }>(dataSource);
-  const viewService = new ViewService(itemDrive, new HTMLViewRenderer());
-  const referenceService = new ReferenceService(itemDrive);
   const listService = new ListService(itemDrive);
   const orderedListService = new OrderedListService(itemDrive, listService);
   const automationService = new AutomationService(itemDrive);
-  const spaceService = new SpaceService(
-    itemDrive,
-    viewService,
-    referenceService,
-  );
   const todoService = new TodoService(itemDrive);
+  const uuidService = new UUIDService(itemDrive);
   const servicesManager = new ServicesManager({
-    view: viewService,
-    reference: referenceService,
-    space: spaceService,
-    automation: automationService,
     list: listService,
     orderedList: orderedListService,
     todo: todoService,
