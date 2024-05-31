@@ -1,5 +1,5 @@
 import type { ItemDrive } from "labs/lib/item_drive/mod.ts";
-import { ItemReferenceService, toItemReferenceName } from "./item_reference.ts";
+import { ItemReferenceService } from "./item_reference.ts";
 
 // A space references a list of items.
 // An item references a 2d vector in the space, a list of possible views, and the current view.
@@ -29,35 +29,35 @@ export class SpaceService {
   // - Get the vectors of the views.
   // - Render the views at the vectors.
 
-  /**
-   * getViews lists the views referenced in a space.
-   */
-  public getViews(props: { name: string }): View[] {
-    const referencedViewsName = toReferenceName({
-      type: "space",
-      name: props.name,
-      property: "views",
-    });
-    const referencedViews = this.referenceService.itemDrive.getItem(
-      "reference",
-      referencedViewsName,
-    );
-    if (referencedViews === undefined) {
-      throw new Error(`Referenced views not found: ${props.name}`);
-    }
+  // /**
+  //  * getViews lists the views referenced in a space.
+  //  */
+  // public getViews(props: { name: string }): View[] {
+  //   const referencedViewsName = toReferenceName({
+  //     type: "space",
+  //     name: props.name,
+  //     property: "views",
+  //   });
+  //   const referencedViews = this.referenceService.itemDrive.getItem(
+  //     "reference",
+  //     referencedViewsName,
+  //   );
+  //   if (referencedViews === undefined) {
+  //     throw new Error(`Referenced views not found: ${props.name}`);
+  //   }
 
-    // TODO: Merge views with vector values.
-    return referencedViews.references.map((reference) => {
-      const view = this.viewService.itemDrive.getItem("view", reference.name);
-      if (view === undefined) {
-        throw new Error(`View not found: ${reference.name}`);
-      }
+  //   // TODO: Merge views with vector values.
+  //   return referencedViews.references.map((reference) => {
+  //     const view = this.viewService.itemDrive.getItem("view", reference.name);
+  //     if (view === undefined) {
+  //       throw new Error(`View not found: ${reference.name}`);
+  //     }
 
-      // TODO: Get vector of view.
+  //     // TODO: Get vector of view.
 
-      return view;
-    });
-  }
+  //     return view;
+  //   });
+  // }
 }
 
 /**

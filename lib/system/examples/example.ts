@@ -8,15 +8,11 @@ import { ItemDrive } from "labs/lib/item_drive/mod.ts";
 import { ServicesManager, System, SystemEvent } from "labs/lib/system/mod.ts";
 import {
   fromActionID,
-  makeRenderAutomation,
-  withStep,
+  // makeRenderAutomation,
+  // withStep,
 } from "labs/lib/system/automations.ts";
 import { Automation, AutomationService } from "labs/lib/services/automation.ts";
 import { List, ListService } from "labs/lib/services/list.ts";
-import {
-  OrderedList,
-  OrderedListService,
-} from "labs/lib/services/ordered_list.ts";
 import { Todo, TodoService } from "labs/lib/services/todo.ts";
 import { UUID, UUIDService } from "labs/lib/services/uuid.ts";
 
@@ -31,34 +27,34 @@ if (import.meta.main) {
   const itemDrive = new ItemDrive<{
     automation: Automation;
     list: List;
-    orderedList: OrderedList;
     todo: Todo;
     // TODO: Register UUID service.
+    uuid: UUID;
   }>(dataSource);
   const listService = new ListService(itemDrive);
-  const orderedListService = new OrderedListService(itemDrive, listService);
   const automationService = new AutomationService(itemDrive);
   const todoService = new TodoService(itemDrive);
   const uuidService = new UUIDService(itemDrive);
   const servicesManager = new ServicesManager({
     list: listService,
-    orderedList: orderedListService,
     todo: todoService,
+    uuid: uuidService,
+    automation: automationService,
   });
   const actionIDs = servicesManager.getActionIDs();
   const actionAutomations = actionIDs.map((actionID) => fromActionID(actionID));
   const automations = [
     ...actionAutomations,
-    // Append render step to each action automation.
-    // Target specific action to render views.
-    makeRenderAutomation({ serviceName: "view", actionName: "render" }),
-    // TODO: Figure out how this works to print views.
-    ...actionAutomations.map((automation) =>
-      withStep(
-        { ...automation, name: `${automation.name} then render` },
-        { run: { automation: "render" } },
-      )
-    ),
+    // // Append render step to each action automation.
+    // // Target specific action to render views.
+    // makeRenderAutomation({ serviceName: "view", actionName: "render" }),
+    // // TODO: Figure out how this works to print views.
+    // ...actionAutomations.map((automation) =>
+    //   withStep(
+    //     { ...automation, name: `${automation.name} then render` },
+    //     { run: { automation: "render" } },
+    //   )
+    // ),
   ].toSorted((a, b) => a.name.localeCompare(b.name));
 
   // TODO: Delete deprecated automations.
@@ -77,23 +73,35 @@ if (import.meta.main) {
 
   printAutomations(automations);
   // TODO: Validate props with jsonSchema referenced to the automation step.
+
+  // Add a todo to the system.
   system.automate({
     automationName: "todo.set",
     props: { name: "test-todo" },
   });
+
+  // TODO: Fix bug collapsing items.
   system.automate({
-    automationName: "orderedList.addList",
+    automationName: "list.addItems",
     props: {
-      name: "test-orderedList",
-      referenceItems: [{ type: "todo", name: "test-todo" }],
+      name: "todo.test-todo",
+      items: [{ type: "todo", name: "test-todo" }],
     },
   });
 
-  // TODO: Test out view rendering.
-  system.automate({
-    automationName: "orderedList.getList",
-    props: { name: "test-orderedList" },
-  });
+  // system.automate({
+  //   automationName: "orderedList.addList",
+  //   props: {
+  //     name: "test-orderedList",
+  //     referenceItems: [{ type: "todo", name: "test-todo" }],
+  //   },
+  // });
+
+  // // TODO: Test out view rendering.
+  // system.automate({
+  //   automationName: "orderedList.getList",
+  //   props: { name: "test-orderedList" },
+  // });
 
   // while (true) {
   //   const event = promptEvent(automations);

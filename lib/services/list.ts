@@ -28,13 +28,15 @@ export class ListService {
   // Perhaps return the name of the list to rerender the list. Or add an automation step to rerender the list.
   public addItems(props: { name: string; items: ListItem[] }): List {
     const existingList = this.itemDrive.getItem("list", props.name);
-    if (existingList === undefined) {
-      throw new Error(`list not found: ${props.name}`);
-    }
-
+    const collapsedItems = collapseItems(
+      existingList?.items ?? [],
+      props.items,
+      collapseSum,
+    );
+    console.log({ collapsedItems });
     const list: List = {
-      title: existingList.title,
-      items: collapseItems(existingList.items, props.items, collapseSum),
+      title: existingList?.title,
+      items: collapsedItems,
     };
     this.itemDrive.setItem("list", props.name, list);
     return list;
