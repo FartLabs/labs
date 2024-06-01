@@ -85,6 +85,10 @@ if (import.meta.main) {
   });
 
   // TODO: Represent Pokemon TCG cards as items.
+  // UUID must be disassociated from an item before it can be re-associated with another item
+  // to maintain the uniqueness of the UUID.
+
+  // TODO: Associate 2 items by associating them in each other's references list.
 
   // Add a physical item to the system.
   system.automate({
@@ -101,24 +105,63 @@ if (import.meta.main) {
     },
   });
 
+  // Add a UUID to the system.
+  const uuid = crypto.randomUUID();
+  system.automate({
+    automationName: "uuid.set",
+    props: { name: uuid, uuid },
+  });
+
+  // Set item's references list.
+  system.automate({
+    automationName: "list.addItems",
+    props: {
+      name: "rubicks-cube-1.references",
+      items: [
+        { type: "empty", name: "rubicks-cube-1" }, // This is the topic item.
+        { type: "list", name: "my-toy-box" },
+        { type: "uuid", name: uuid },
+        { type: "list", name: "rubicks-cube-1.references" },
+      ],
+    },
+  });
+
+  // All references are doubly linked.
+  system.automate({
+    automationName: "list.addItems",
+    props: {
+      name: "my-toy-box.references",
+      items: [{ type: "empty", name: "rubicks-cube-1" }],
+    },
+  });
+  system.automate({
+    automationName: "list.addItems",
+    props: {
+      name: `${uuid}.references`,
+      items: [{ type: "empty", name: "rubicks-cube-1" }],
+    },
+  });
+  system.automate({
+    automationName: "list.addItems",
+    props: {
+      name: "rubicks-cube-1.references",
+      items: [{ type: "empty", name: "rubicks-cube-1" }],
+    },
+  });
+
+  // TODO: Come up with sounder mechanism for associating items.
+
+  // List all items in toy box.
   system.automate({
     automationName: "list.getItems",
     props: { name: "my-toy-box" },
   });
 
-  // system.automate({
-  //   automationName: "orderedList.addList",
-  //   props: {
-  //     name: "test-orderedList",
-  //     referenceItems: [{ type: "todo", name: "test-todo" }],
-  //   },
-  // });
-
-  // // TODO: Test out view rendering.
-  // system.automate({
-  //   automationName: "orderedList.getList",
-  //   props: { name: "test-orderedList" },
-  // });
+  // List all items associated with the rubick's cube.
+  system.automate({
+    automationName: "list.getItems",
+    props: { name: "rubicks-cube-1.references" },
+  });
 
   // while (true) {
   //   const event = promptEvent(automations);

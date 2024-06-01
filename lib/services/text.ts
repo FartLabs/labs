@@ -15,3 +15,5 @@ export class TextService {
 export interface Text {
   readonly content: string;
 }
+
+// TODO: Create NoteService and ScreenshotService.

@@ -2,6 +2,9 @@
 
 import type { ItemDrive } from "labs/lib/item_drive/mod.ts";
 
+// TODO: Changes can be made live into the ecosystem by using the item drive.
+// A new topic can be created in which a type of item is designated as a recent item.
+
 /**
  * RecentsService provides a service for managing recent items.
  */
