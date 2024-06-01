@@ -15,6 +15,7 @@ import { Automation, AutomationService } from "labs/lib/services/automation.ts";
 import { List, ListService } from "labs/lib/services/list.ts";
 import { Todo, TodoService } from "labs/lib/services/todo.ts";
 import { UUID, UUIDService } from "labs/lib/services/uuid.ts";
+import { Empty, EmptyService } from "labs/lib/services/empty.ts";
 
 // TODO: Create automation that gets all the references of an item and adds references to a list of items.
 // TODO: Create a type-safe mechanism to use within actions for referencing the given item drive with other item types.
@@ -30,16 +31,19 @@ if (import.meta.main) {
     todo: Todo;
     // TODO: Register UUID service.
     uuid: UUID;
+    empty: Empty;
   }>(dataSource);
   const listService = new ListService(itemDrive);
   const automationService = new AutomationService(itemDrive);
   const todoService = new TodoService(itemDrive);
   const uuidService = new UUIDService(itemDrive);
+  const emptyService = new EmptyService(itemDrive);
   const servicesManager = new ServicesManager({
     list: listService,
     todo: todoService,
     uuid: uuidService,
     automation: automationService,
+    empty: emptyService,
   });
   const actionIDs = servicesManager.getActionIDs();
   const actionAutomations = actionIDs.map((actionID) => fromActionID(actionID));
@@ -80,12 +84,26 @@ if (import.meta.main) {
     props: { name: "test-todo" },
   });
 
+  // TODO: Represent Pokemon TCG cards as items.
+
+  // Add a physical item to the system.
+  system.automate({
+    automationName: "empty.set",
+    props: { name: "rubicks-cube-1", title: "Rubick's Cube" },
+  });
+
+  // Add a physical container to the system.
   system.automate({
     automationName: "list.addItems",
     props: {
-      name: "todo.test-todo",
-      items: [{ type: "todo", name: "test-todo" }],
+      name: "my-toy-box",
+      items: [{ type: "empty", name: "rubicks-cube-1" }],
     },
+  });
+
+  system.automate({
+    automationName: "list.getItems",
+    props: { name: "my-toy-box" },
   });
 
   // system.automate({

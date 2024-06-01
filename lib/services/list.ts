@@ -33,7 +33,6 @@ export class ListService {
       props.items,
       collapseSum,
     );
-    console.log({ collapsedItems });
     const list: List = {
       title: existingList?.title,
       items: collapsedItems,
@@ -53,6 +52,15 @@ export class ListService {
       items: collapseItems(existingList.items, props.items, collapseDifference),
     };
     this.itemDrive.setItem("list", props.name, list);
+  }
+
+  public getItems(props: { name: string }): ListItem[] {
+    const list = this.itemDrive.getItem("list", props.name);
+    if (list === undefined) {
+      throw new Error(`list not found: ${props.name}`);
+    }
+
+    return list.items;
   }
 }
 

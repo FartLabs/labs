@@ -8,7 +8,7 @@ export class TodoService {
     public readonly itemDrive: ItemDrive<{ todo: Todo }>,
   ) {}
 
-  public getAll(): [string, Todo][] {
+  public list(): [string, Todo][] {
     return this.itemDrive.getItems("todo");
   }
 
@@ -23,6 +23,10 @@ export class TodoService {
       name,
       { done: props?.done ?? false },
     );
+  }
+
+  public done(props: { name: string; done?: boolean }): void {
+    this.set({ name: props.name, done: props.done ?? true });
   }
 }
 
