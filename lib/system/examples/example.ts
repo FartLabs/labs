@@ -80,7 +80,6 @@ if (import.meta.main) {
     props: { name: "test-todo" },
   });
 
-  // TODO: Fix bug collapsing items.
   system.automate({
     automationName: "list.addItems",
     props: {

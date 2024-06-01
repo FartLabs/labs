@@ -76,7 +76,9 @@ export function collapseItems(
     return items;
   }
 
-  const lookup = new Map<string, number>();
+  const lookup = new Map<string, number>(
+    results.map((item, index) => [stringifyItem(item), index]),
+  );
   return items.reduce((collapsed, item) => {
     const itemString = stringifyItem(item);
     const existingIndex = lookup.get(itemString);
@@ -85,7 +87,6 @@ export function collapseItems(
       return collapsed;
     }
 
-    collapsed.push(item);
     lookup.set(itemString, collapsed.length - 1);
     return collapsed;
   }, results);
@@ -105,6 +106,10 @@ export function collapseItem(
     return;
   }
 
+  if (items[at].type !== item.type || items[at].name !== item.name) {
+    throw new Error("item type and name do not match");
+  }
+
   items[at] = {
     name: items[at].name,
     type: items[at].type,
@@ -114,7 +119,10 @@ export function collapseItem(
 
 collapseSum satisfies Collapse;
 
-function collapseSum(q1: number, q2: number): number {
+/**
+ * collapseSum collapses two quantities into one.
+ */
+export function collapseSum(q1: number, q2: number): number {
   if (!Number.isSafeInteger(q1) || !Number.isSafeInteger(q2)) {
     throw new Error("quantity is not an integer");
   }
@@ -124,7 +132,10 @@ function collapseSum(q1: number, q2: number): number {
 
 collapseDifference satisfies Collapse;
 
-function collapseDifference(q1: number, q2: number): number {
+/**
+ * collapseDifference collapses two quantities into one.
+ */
+export function collapseDifference(q1: number, q2: number): number {
   if (!Number.isSafeInteger(q1) || !Number.isSafeInteger(q2)) {
     throw new Error("quantity is not an integer");
   }
@@ -136,7 +147,10 @@ function collapseDifference(q1: number, q2: number): number {
   return q1 - q2;
 }
 
-type Collapse = (q1: number, q2: number) => number | undefined;
+/**
+ * Collapse collapses two quantities into one.
+ */
+export type Collapse = (q1: number, q2: number) => number | undefined;
 
 /**
  * stringifyItem returns a string representation of an item.
