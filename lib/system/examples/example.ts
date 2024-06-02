@@ -97,7 +97,7 @@ if (import.meta.main) {
     props: { name: "rubicks-cube-1", title: "Rubick's Cube" },
   });
 
-  // Add a physical container to the system.
+  // Add a physical container to the system and place the cube in it.
   system.automate({
     automationName: "list.addItems",
     props: {
@@ -115,30 +115,13 @@ if (import.meta.main) {
 
   // Set item's list of associations.
   system.automate({
-    automationName: "list.addItems",
+    automationName: "list.associateItems",
     props: {
-      name: "associations.empty.rubicks-cube-1",
+      item: { type: "empty", name: "rubicks-cube-1" },
       items: [
         { type: "list", name: "my-toy-box" },
         { type: "uuid", name: uuid },
-        { type: "list", name: "associations.empty.rubicks-cube-1" },
       ],
-    },
-  });
-
-  // All references are doubly linked.
-  system.automate({
-    automationName: "list.addItems",
-    props: {
-      name: "associations.list.my-toy-box",
-      items: [{ type: "empty", name: "rubicks-cube-1" }],
-    },
-  });
-  system.automate({
-    automationName: "list.addItems",
-    props: {
-      name: `associations.uuid.${uuid}`,
-      items: [{ type: "empty", name: "rubicks-cube-1" }],
     },
   });
 
@@ -157,6 +140,30 @@ if (import.meta.main) {
   });
 
   // Get all items associated with the toy box.
+  system.automate({
+    automationName: "list.getItems",
+    props: { name: "associations.list.my-toy-box" },
+  });
+
+  // Take the cube out of the toy box.
+  system.automate({
+    automationName: "list.deleteItems",
+    props: {
+      name: "my-toy-box",
+      items: [{ type: "empty", name: "rubicks-cube-1" }],
+    },
+  });
+  system.automate({
+    automationName: "list.dissociateItems",
+    props: {
+      item: { type: "empty", name: "rubicks-cube-1" },
+      items: [
+        { type: "list", name: "my-toy-box" },
+      ],
+    },
+  });
+
+  // List all items in toy box.
   system.automate({
     automationName: "list.getItems",
     props: { name: "associations.list.my-toy-box" },

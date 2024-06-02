@@ -9,6 +9,47 @@ export class ListService {
     public readonly itemDrive: ItemDrive<{ list: List }>,
   ) {}
 
+  /**
+   * associateItems associates a list of items with an item.
+   */
+  public associateItems(props: {
+    item: ListItem;
+    items: ListItem[];
+  }): void {
+    for (const item of props.items) {
+      this.addItems({
+        name: `associations.${props.item.type}.${props.item.name}`,
+        items: [item],
+      });
+      this.addItems({
+        name: `associations.${item.type}.${item.name}`,
+        items: [props.item],
+      });
+    }
+  }
+
+  /**
+   * dissociateItems dissociates a list of items from an item.
+   */
+  public dissociateItems(props: {
+    item: ListItem;
+    items: ListItem[];
+  }): void {
+    for (const item of props.items) {
+      this.deleteItems({
+        name: `associations.${props.item.type}.${props.item.name}`,
+        items: [item],
+      });
+      this.deleteItems({
+        name: `associations.${item.type}.${item.name}`,
+        items: [props.item],
+      });
+    }
+  }
+
+  /**
+   * addList adds a new list of items.
+   */
   public addList(
     props?: { name?: string; title?: string; items?: ListItem[] },
   ): List {
@@ -25,8 +66,11 @@ export class ListService {
     this.itemDrive.deleteItem("list", props.name);
   }
 
-  // Perhaps return the name of the list to rerender the list. Or add an automation step to rerender the list.
+  /**
+   * addItems adds items to a list.
+   */
   public addItems(props: { name: string; items: ListItem[] }): List {
+    // Perhaps return the name of the list to rerender the list. Or add an automation step to rerender the list.
     const existingList = this.itemDrive.getItem("list", props.name);
     const collapsedItems = collapseItems(
       existingList?.items ?? [],
@@ -41,6 +85,9 @@ export class ListService {
     return list;
   }
 
+  /**
+   * deleteItems deletes items from a list.
+   */
   public deleteItems(props: { name: string; items: ListItem[] }) {
     const existingList = this.itemDrive.getItem("list", props.name);
     if (existingList === undefined) {
@@ -54,13 +101,11 @@ export class ListService {
     this.itemDrive.setItem("list", props.name, list);
   }
 
-  public getItems(props: { name: string }): ListItem[] {
-    const list = this.itemDrive.getItem("list", props.name);
-    if (list === undefined) {
-      throw new Error(`list not found: ${props.name}`);
-    }
-
-    return list.items;
+  /**
+   * getItems returns the items in a list.
+   */
+  public getItems(props: { name: string }): List | undefined {
+    return this.itemDrive.getItem("list", props.name);
   }
 }
 
@@ -119,10 +164,16 @@ export function collapseItem(
     throw new Error("item type and name do not match");
   }
 
+  const quantity = collapse(items[at].quantity ?? 1, item.quantity ?? 1);
+  if (quantity === undefined) {
+    items.splice(at, 1);
+    return;
+  }
+
   items[at] = {
     name: items[at].name,
     type: items[at].type,
-    quantity: collapse(items[at].quantity ?? 1, item.quantity ?? 1),
+    quantity,
   };
 }
 
@@ -144,13 +195,17 @@ collapseDifference satisfies Collapse;
 /**
  * collapseDifference collapses two quantities into one.
  */
-export function collapseDifference(q1: number, q2: number): number {
+export function collapseDifference(q1: number, q2: number): number | undefined {
   if (!Number.isSafeInteger(q1) || !Number.isSafeInteger(q2)) {
     throw new Error("quantity is not an integer");
   }
 
   if (q1 < q2) {
     throw new Error("quantity cannot be negative");
+  }
+
+  if (q1 === q2) {
+    return;
   }
 
   return q1 - q2;
