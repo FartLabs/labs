@@ -119,7 +119,6 @@ if (import.meta.main) {
     props: {
       item: { type: "empty", name: "rubicks-cube-1" },
       items: [
-        { type: "list", name: "my-toy-box" },
         { type: "uuid", name: uuid },
       ],
     },
@@ -151,15 +150,6 @@ if (import.meta.main) {
     props: {
       name: "my-toy-box",
       items: [{ type: "empty", name: "rubicks-cube-1" }],
-    },
-  });
-  system.automate({
-    automationName: "list.dissociateItems",
-    props: {
-      item: { type: "empty", name: "rubicks-cube-1" },
-      items: [
-        { type: "list", name: "my-toy-box" },
-      ],
     },
   });
 
