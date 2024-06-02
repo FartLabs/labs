@@ -79,13 +79,16 @@ if (import.meta.main) {
   printAutomations(automations);
   // TODO: Validate props with jsonSchema referenced to the automation step.
 
+  // TODO: Generate system with type-safe automations based on jsonSchema.
+
   // Add a todo to the system.
   system.automate({
     automationName: "todo.set",
     props: { name: "test-todo" },
   });
 
-  // TODO: Represent Pokemon TCG cards as items.
+  // TODO: For each tcg card, associate todo, expected pokemon, actual pokemon card, and location in binder.
+  // TODO: Represent Pokemon TCG cards and binders as items.
   // UUID must be disassociated from an item before it can be re-associated with another item
   // to maintain the uniqueness of the UUID.
 
