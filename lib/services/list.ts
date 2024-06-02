@@ -69,6 +69,7 @@ export class ListService {
  */
 export interface List {
   readonly title?: string;
+  // TODO: Allow duplicates in a list by default.
   readonly items: ListItem[];
 }
 

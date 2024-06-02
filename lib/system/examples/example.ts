@@ -1,6 +1,6 @@
 import { parse } from "@std/yaml";
-// import { InMemoryDataSource } from "labs/lib/data_source/in_memory.ts";
-import { FSDataSource, jsonPathFromPrefix } from "labs/lib/data_source/fs.ts";
+import { InMemoryDataSource } from "labs/lib/data_source/in_memory.ts";
+// import { FSDataSource, jsonPathFromPrefix } from "labs/lib/data_source/fs.ts";
 import { ItemDrive } from "labs/lib/item_drive/mod.ts";
 // import { Space, SpaceService } from "labs/lib/services/space.ts";
 // import { View, ViewService } from "labs/lib/services/view.ts";
@@ -23,7 +23,8 @@ import { Empty, EmptyService } from "labs/lib/services/empty.ts";
 
 if (import.meta.main) {
   console.log("Initializing system...");
-  const dataSource = new FSDataSource(jsonPathFromPrefix("./_data/"));
+  // const dataSource = new FSDataSource(jsonPathFromPrefix("./_data/"));
+  const dataSource = new InMemoryDataSource();
   // TODO: Visualize graph of data sources, item drives, and services.
   const itemDrive = new ItemDrive<{
     automation: Automation;
@@ -112,16 +113,15 @@ if (import.meta.main) {
     props: { name: uuid, uuid },
   });
 
-  // Set item's references list.
+  // Set item's list of associations.
   system.automate({
     automationName: "list.addItems",
     props: {
-      name: "rubicks-cube-1.references",
+      name: "associations.empty.rubicks-cube-1",
       items: [
-        { type: "empty", name: "rubicks-cube-1" }, // This is the topic item.
         { type: "list", name: "my-toy-box" },
         { type: "uuid", name: uuid },
-        { type: "list", name: "rubicks-cube-1.references" },
+        { type: "list", name: "associations.empty.rubicks-cube-1" },
       ],
     },
   });
@@ -130,21 +130,14 @@ if (import.meta.main) {
   system.automate({
     automationName: "list.addItems",
     props: {
-      name: "my-toy-box.references",
+      name: "associations.list.my-toy-box",
       items: [{ type: "empty", name: "rubicks-cube-1" }],
     },
   });
   system.automate({
     automationName: "list.addItems",
     props: {
-      name: `${uuid}.references`,
-      items: [{ type: "empty", name: "rubicks-cube-1" }],
-    },
-  });
-  system.automate({
-    automationName: "list.addItems",
-    props: {
-      name: "rubicks-cube-1.references",
+      name: `associations.uuid.${uuid}`,
       items: [{ type: "empty", name: "rubicks-cube-1" }],
     },
   });
@@ -160,7 +153,13 @@ if (import.meta.main) {
   // List all items associated with the rubick's cube.
   system.automate({
     automationName: "list.getItems",
-    props: { name: "rubicks-cube-1.references" },
+    props: { name: "associations.empty.rubicks-cube-1" },
+  });
+
+  // Get all items associated with the toy box.
+  system.automate({
+    automationName: "list.getItems",
+    props: { name: "associations.list.my-toy-box" },
   });
 
   // while (true) {
