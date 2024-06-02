@@ -9,8 +9,7 @@
     "@std/yaml": "jsr:@std/yaml@^0.224.0",
     "json-schema": "npm:json-schema@^0.4.0",
     "json-schema-to-typescript": "npm:json-schema-to-typescript@^14.0.4",
-    "labs/": "./",
-    "quoted-split": "https://deno.land/x/generate@0.0.2/parse/quoted_split.ts"
+    "labs/": "./"
   },
   "compilerOptions": {
     "jsx": "react-jsx",
