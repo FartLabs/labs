@@ -174,6 +174,7 @@ if (import.meta.main) {
 
 function promptEvent(automations: Automation[]): SystemEvent | null {
   const automationNumber = prompt(
+    // TODO: Or enter automation name.
     "Enter automation number to run (or 'q' to quit):",
   );
   if (automationNumber === null || automationNumber === "q") {

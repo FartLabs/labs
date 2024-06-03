@@ -3,7 +3,12 @@
   "packages": {
     "specifiers": {
       "jsr:@fartlabs/jsonx@^0.0.10": "jsr:@fartlabs/jsonx@0.0.10",
-      "jsr:@std/collections@^0.220.1": "jsr:@std/collections@0.220.1"
+      "jsr:@std/assert@^0.225.2": "jsr:@std/assert@0.225.3",
+      "jsr:@std/assert@^0.226.0": "jsr:@std/assert@0.226.0",
+      "jsr:@std/collections@^0.220.1": "jsr:@std/collections@0.220.1",
+      "jsr:@std/fs@^0.229.1": "jsr:@std/fs@0.229.1",
+      "jsr:@std/path@^0.225.1": "jsr:@std/path@0.225.2",
+      "jsr:@std/yaml@^0.224.0": "jsr:@std/yaml@0.224.1"
     },
     "jsr": {
       "@fartlabs/jsonx@0.0.10": {
@@ -12,8 +17,30 @@
           "jsr:@std/collections@^0.220.1"
         ]
       },
+      "@std/assert@0.225.3": {
+        "integrity": "b3c2847aecf6955b50644cdb9cf072004ea3d1998dd7579fc0acb99dbb23bd4f"
+      },
+      "@std/assert@0.226.0": {
+        "integrity": "0dfb5f7c7723c18cec118e080fec76ce15b4c31154b15ad2bd74822603ef75b3"
+      },
       "@std/collections@0.220.1": {
         "integrity": "5820a8d7f69ef93af6807249dfa4be5b97ebf8654c587826612744cf7ae57ef2"
+      },
+      "@std/fs@0.229.1": {
+        "integrity": "38d3fb31f0ca0a8c1118e039939188f32e291a3f7f17dc0868fec22024bdfadd",
+        "dependencies": [
+          "jsr:@std/assert@^0.225.2",
+          "jsr:@std/path@^0.225.1"
+        ]
+      },
+      "@std/path@0.225.2": {
+        "integrity": "0f2db41d36b50ef048dcb0399aac720a5348638dd3cb5bf80685bf2a745aa506",
+        "dependencies": [
+          "jsr:@std/assert@^0.226.0"
+        ]
+      },
+      "@std/yaml@0.224.1": {
+        "integrity": "cbb444acccce7ea34b9ef6678bff84c18eba89b790e52dd098def8dae313f0b2"
       }
     }
   },
