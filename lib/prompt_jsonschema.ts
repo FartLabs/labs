@@ -2,43 +2,43 @@ const calendarEventSchema = {
   "$id": "https://example.com/calendar.schema.json",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "description": "A representation of an event",
-  "type": "object",
+  "type": "object" as const,
   "required": ["startDate", "summary"],
   "properties": {
     "startDate": {
-      "type": "string",
+      "type": "string" as const,
       "description": "Event starting time",
     },
     "endDate": {
-      "type": "string",
+      "type": "string" as const,
       "description": "Event ending time",
     },
     "summary": {
-      "type": "string",
+      "type": "string" as const,
     },
     "location": {
-      "type": "string",
+      "type": "string" as const,
     },
     "url": {
-      "type": "string",
+      "type": "string" as const,
     },
     "duration": {
-      "type": "string",
+      "type": "string" as const,
       "description": "Event duration",
     },
     "recurrenceDate": {
-      "type": "string",
+      "type": "string" as const,
       "description": "Recurrence date",
     },
     "recurrenceDule": {
-      "type": "string",
+      "type": "string" as const,
       "description": "Recurrence rule",
     },
     "category": {
-      "type": "string",
+      "type": "string" as const,
     },
     "description": {
-      "type": "string",
+      "type": "string" as const,
     },
     // "geo": {
     //   "$ref": "https://example.com/geographical-location.schema.json",
@@ -48,14 +48,46 @@ const calendarEventSchema = {
 
 // deno run lib/prompt_jsonschema.ts
 if (import.meta.main) {
-  const calendarEvent = promptJSONSchema(calendarEventSchema);
+  const calendarEvent = promptJSONSchema("calendarEvent", calendarEventSchema);
   console.log({ calendarEvent });
 }
 
 /**
  * promptJSONSchema prompts the user for input based on a JSON schema.
  */
-export function promptJSONSchema(descriptor: JSONSchemaDescriptor) {
+export function promptJSONSchema(
+  name: string,
+  descriptor: JSONSchemaDescriptor,
+  // options?: PromptJSONSchemaOptions,
+) {
+  console.log(makePromptMessage(name, descriptor));
+  return promptJSONSchemaProperties(descriptor);
+
+  // const inputType = options?.inputType ?? "default";
+  // switch (inputType) {
+  //   case "json": {
+  //     return promptJSONSchemaJSON(descriptor);
+  //   }
+
+  //   case "yaml": {
+  //     return promptJSONSchemaYAML(descriptor);
+  //   }
+
+  //   case "default": {
+  //     return promptJSONSchemaProperties(descriptor);
+  //   }
+
+  //   default: {
+  //     throw new Error(`Unsupported input type: ${options?.inputType}`);
+  //   }
+  // }
+}
+
+/**
+ * promptJSONSchemaProperties prompts the user for input based on a JSON schema
+ * object.
+ */
+function promptJSONSchemaProperties(descriptor: JSONSchemaObjectDescriptor) {
   const properties = getSortedProperties(descriptor);
   const result: Record<string, unknown> = {};
   for (const [name, property] of properties) {
@@ -65,6 +97,13 @@ export function promptJSONSchema(descriptor: JSONSchemaDescriptor) {
 
   return result;
 }
+
+// /**
+//  * PromptJSONSchemaOptions are the options for the promptJSONSchema function.
+//  */
+// export interface PromptJSONSchemaOptions {
+//   inputType?: "default" | "json" | "yaml";
+// }
 
 /**
  * promptJSONSchemaProperty prompts the user for input based on a JSON schema
@@ -76,15 +115,99 @@ function promptJSONSchemaProperty(
 ) {
   switch (descriptor.type) {
     case "object": {
-      return promptJSONSchema(descriptor);
+      console.log(makePromptMessage(name, descriptor));
+      return promptJSONSchemaProperties(descriptor);
     }
 
-    // TODO: Implement other types.
+    case "integer": {
+      return promptJSONSchemaPropertyInteger(name, descriptor);
+    }
+
+    case "boolean": {
+      return promptJSONSchemaPropertyBoolean(name, descriptor);
+    }
+
+    case "number": {
+      return promptJSONSchemaPropertyNumber(name, descriptor);
+    }
+
+    case "string": {
+      return promptJSONSchemaPropertyString(name, descriptor);
+    }
 
     default: {
       throw new Error(`Unsupported JSON schema type: ${descriptor.type}`);
     }
   }
+}
+
+/** */
+
+/**
+ * promptJSONSchemaPropertyInteger prompts the user for an integer value.
+ */
+function promptJSONSchemaPropertyInteger(
+  name: string,
+  descriptor: JSONSchemaDescriptor,
+) {
+  const integerString = prompt(makePromptMessage(name, descriptor));
+  if (integerString === null) {
+    return null;
+  }
+
+  return parseInt(integerString);
+}
+
+/**
+ * promptJSONSchemaPropertyBoolean prompts the user for a boolean value.
+ */
+function promptJSONSchemaPropertyBoolean(
+  name: string,
+  descriptor: JSONSchemaDescriptor,
+) {
+  const booleanString = prompt(
+    `${makePromptMessage(name, descriptor)} (true|false)`,
+  );
+  if (booleanString === null) {
+    return null;
+  }
+
+  return booleanString === "true";
+}
+
+/** */
+
+/**
+ * promptJSONSchemaPropertyNumber prompts the user for a number value.
+ */
+function promptJSONSchemaPropertyNumber(
+  name: string,
+  descriptor: JSONSchemaDescriptor,
+) {
+  const numberString = prompt(makePromptMessage(name, descriptor));
+  if (numberString === null) {
+    return null;
+  }
+
+  return parseFloat(numberString);
+}
+
+/**
+ * promptJSONSchemaPropertyString prompts the user for a string value.
+ */
+function promptJSONSchemaPropertyString(
+  name: string,
+  descriptor: JSONSchemaDescriptor,
+) {
+  return prompt(makePromptMessage(name, descriptor));
+}
+
+function makePromptMessage(name: string, descriptor: JSONSchemaDescriptor) {
+  if (descriptor.description === undefined) {
+    return name;
+  }
+
+  return `${name}: ${descriptor.description}`;
 }
 
 /**
@@ -122,8 +245,59 @@ export type JSONSchemaDescriptor = // | JSONSchemaRefDescriptor
 // https://json-schema.org/blog/posts/get-started-with-json-schema-in-node-js
 export interface JSONSchemaObjectDescriptor {
   $id?: string;
-  type: string;
+  type: "object" | "integer" | "boolean" | "number" | "string";
   description?: string;
   required?: string[];
   properties?: Record<string, JSONSchemaDescriptor>;
+}
+
+// deno-lint-ignore no-explicit-any
+export function validate(schema: JSONSchemaDescriptor, data: any): boolean {
+  for (const propertyName in schema.properties) {
+    if (
+      schema.required?.includes(propertyName) &&
+      data[propertyName] === undefined
+    ) {
+      return false;
+    }
+
+    switch (data[propertyName].type) {
+      case "object": {
+        return validate(schema.properties[propertyName], data[propertyName]);
+      }
+
+      case "integer":
+      case "number": {
+        if (typeof data[propertyName] !== "number") {
+          return false;
+        }
+
+        break;
+      }
+
+      case "boolean": {
+        if (typeof data[propertyName] !== "boolean") {
+          return false;
+        }
+
+        break;
+      }
+
+      case "string": {
+        if (typeof data[propertyName] !== "string") {
+          return false;
+        }
+
+        break;
+      }
+
+      default: {
+        throw new Error(
+          `Unsupported JSON schema type: ${data[propertyName].type}`,
+        );
+      }
+    }
+  }
+
+  return true;
 }

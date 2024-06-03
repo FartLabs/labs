@@ -7,8 +7,6 @@
     "@std/cli": "jsr:@std/cli@^0.224.1",
     "@std/fs": "jsr:@std/fs@^0.229.1",
     "@std/yaml": "jsr:@std/yaml@^0.224.0",
-    "json-schema": "npm:json-schema@^0.4.0",
-    "json-schema-to-typescript": "npm:json-schema-to-typescript@^14.0.4",
     "labs/": "./"
   },
   "compilerOptions": {
