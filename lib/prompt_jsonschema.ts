@@ -1,4 +1,4 @@
-const exampleSchema = {
+const calendarEventSchema = {
   "$id": "https://example.com/calendar.schema.json",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "description": "A representation of an event",
@@ -48,12 +48,43 @@ const exampleSchema = {
 
 // deno run lib/prompt_jsonschema.ts
 if (import.meta.main) {
-  promptJSONSchema(exampleSchema);
+  const calendarEvent = promptJSONSchema(calendarEventSchema);
+  console.log({ calendarEvent });
 }
 
+/**
+ * promptJSONSchema prompts the user for input based on a JSON schema.
+ */
 export function promptJSONSchema(descriptor: JSONSchemaDescriptor) {
   const properties = getSortedProperties(descriptor);
-  console.log({ properties });
+  const result: Record<string, unknown> = {};
+  for (const [name, property] of properties) {
+    const value = promptJSONSchemaProperty(name, property);
+    result[name] = value;
+  }
+
+  return result;
+}
+
+/**
+ * promptJSONSchemaProperty prompts the user for input based on a JSON schema
+ * property.
+ */
+function promptJSONSchemaProperty(
+  name: string,
+  descriptor: JSONSchemaDescriptor,
+) {
+  switch (descriptor.type) {
+    case "object": {
+      return promptJSONSchema(descriptor);
+    }
+
+    // TODO: Implement other types.
+
+    default: {
+      throw new Error(`Unsupported JSON schema type: ${descriptor.type}`);
+    }
+  }
 }
 
 /**
