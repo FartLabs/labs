@@ -301,3 +301,55 @@ export function validate(schema: JSONSchemaDescriptor, data: any): boolean {
 
   return true;
 }
+
+// TODO: Render a list of todo items.
+
+// Example of new linked data structure.
+
+// Ability to recursively fetch data to compose an object.
+
+// checkbox.my-checkbox: { done: false }
+// text.my-text: { value: "Hello, world!" }
+
+// What if I want to turn any item into a todo by connecting it to a checkbox?
+
+// const checkboxService = new CheckboxService();
+// const textService = new TextService();
+// const todoService = new TodoService();
+
+// A service:
+// - Manages a collection of items.
+// - Manages the relationships between items.
+// - Manages the actions that can be performed on items.
+// - Manages the data structure of items.
+// - Manages the representation of items.
+// - Manages the validation of items.
+
+// TODO representation options:
+
+// Option 1:
+// todo.my-todo: {
+//   checkbox: { "@id": "my-checkbox" },
+//   checkbox: { "@id": "https://example.com/checkbox" },
+//   checkbox: { "@id": { type: "checkbox", name: "my-checkbox" } },
+//   // the items to be done, associated with the checkbox.
+//   items: [ { "@id": { type: "text", name: "my-text" } } ],
+// }
+
+// Expose api for developers to define their own data structures.
+// Expose api for developers to define their own actions, given the data structures.
+
+// Option 2:
+// todo.my-todo: { checkbox: "my-checkbox", text: "my-text" }
+
+// Option 3:
+// todo.my-todo: {
+//   references: { checkbox: "my-checkbox", text: "my-text" },
+// }
+
+// Option 4:
+// todo.my-todo: {
+
+// The todo knows it is linked to the checkbox and text.
+// How do the checkbox and text know they are linked to the todo?
+// Additional data structure that connects the checkbox and text to the todo.
