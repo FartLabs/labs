@@ -2,27 +2,27 @@
  * DataSource is the source of data for an item drive.
  */
 export interface DataSource {
-  getItem<TType extends string, TItem>(
-    type: TType,
+  getItem<TCollection extends string, TItem>(
+    collection: TCollection,
     name: string,
-  ): TItem | undefined;
-  getItems<TType extends string, TItem>(
-    type: TType,
-  ): Array<[string, TItem]>;
-  setItem<TType extends string, TItem>(
-    type: TType,
+  ): Promise<TItem | undefined>;
+  getItems<TCollection extends string, TItem>(
+    collection: TCollection,
+  ): Promise<Array<[string, TItem]>>;
+  setItem<TCollection extends string, TItem>(
+    collection: TCollection,
     name: string,
     item: TItem,
-  ): void;
-  setItems<TType extends string, TItem>(
-    type: TType,
+  ): Promise<void>;
+  setItems<TCollection extends string, TItem>(
+    collection: TCollection,
     items: Array<[string, TItem]>,
-  ): void;
-  deleteItem<TType extends string>(
-    type: TType,
+  ): Promise<void>;
+  deleteItem<TCollection extends string>(
+    collection: TCollection,
     name: string,
-  ): void;
-  deleteItems<TType extends string>(
-    type: TType,
-  ): void;
+  ): Promise<void>;
+  deleteItems<TCollection extends string>(
+    collection: TCollection,
+  ): Promise<void>;
 }

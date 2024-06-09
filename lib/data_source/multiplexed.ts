@@ -11,53 +11,53 @@ export class MultiplexedDataSource implements DataSource {
     return new MultiplexedDataSource(new Map(dataSources));
   }
 
-  private getDataSource<TType extends string>(
-    type: TType,
+  private getDataSource<TCollection extends string>(
+    collection: TCollection,
   ): DataSource {
-    const dataSource = this.dataSources.get(type);
+    const dataSource = this.dataSources.get(collection);
     if (!dataSource) {
-      throw new Error(`Unknown data source: ${type.toString()}`);
+      throw new Error(`Unknown data source: ${collection.toString()}`);
     }
 
     return dataSource;
   }
 
-  public getItem<TType extends string, TItem>(
-    type: TType,
+  public getItem<TCollection extends string, TItem>(
+    collection: TCollection,
     name: string,
-  ): TItem | undefined {
-    return this.getDataSource(type).getItem(type, name);
+  ): Promise<TItem | undefined> {
+    return this.getDataSource(collection).getItem(collection, name);
   }
 
-  public getItems<TType extends string, TItem>(
-    type: TType,
-  ): Array<[string, TItem]> {
-    return this.getDataSource(type).getItems(type);
+  public getItems<TCollection extends string, TItem>(
+    collection: TCollection,
+  ): Promise<Array<[string, TItem]>> {
+    return this.getDataSource(collection).getItems(collection);
   }
 
-  public setItem<TType extends string, TItem>(
-    type: TType,
+  public setItem<TCollection extends string, TItem>(
+    collection: TCollection,
     name: string,
     item: TItem,
   ) {
-    this.getDataSource(type).setItem(type, name, item);
+    return this.getDataSource(collection).setItem(collection, name, item);
   }
 
-  public setItems<TType extends string, TItem>(
-    type: TType,
+  public setItems<TCollection extends string, TItem>(
+    collection: TCollection,
     items: Array<[string, TItem]>,
   ) {
-    this.getDataSource(type).setItems(type, items);
+    return this.getDataSource(collection).setItems(collection, items);
   }
 
-  public deleteItem<TType extends string>(
-    type: TType,
+  public deleteItem<TCollection extends string>(
+    collection: TCollection,
     name: string,
-  ): void {
-    this.getDataSource(type).deleteItem(type, name);
+  ) {
+    return this.getDataSource(collection).deleteItem(collection, name);
   }
 
-  public deleteItems<TType extends string>(type: TType): void {
-    this.getDataSource(type).deleteItems(type);
+  public deleteItems<TCollection extends string>(collection: TCollection) {
+    return this.getDataSource(collection).deleteItems(collection);
   }
 }

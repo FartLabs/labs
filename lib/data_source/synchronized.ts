@@ -7,53 +7,58 @@ export class SynchronizedDataSource implements DataSource {
     private readonly dataSources: DataSource[],
   ) {}
 
-  public getItem<TType extends string, TItem>(
-    type: TType,
+  public getItem<TCollection extends string, TItem>(
+    collection: TCollection,
     name: string,
-  ): TItem | undefined {
-    const item = this.dataSources[0]?.getItem(type, name);
-    if (item) {
-      return item as TItem;
-    }
+  ): Promise<TItem | undefined> {
+    return this.dataSources[0]?.getItem(collection, name);
   }
 
-  public getItems<TType extends string, TItem>(
-    type: TType,
-  ): Array<[string, TItem]> {
-    return this.dataSources[0]?.getItems(type) ?? [];
+  public getItems<TCollection extends string, TItem>(
+    collection: TCollection,
+  ): Promise<Array<[string, TItem]>> {
+    return this.dataSources[0]?.getItems(collection);
   }
 
-  public setItem<TType extends string, TItem>(
-    type: TType,
+  public async setItem<TCollection extends string, TItem>(
+    collection: TCollection,
     name: string,
     item: TItem,
   ) {
-    this.dataSources.forEach((dataSource) => {
-      dataSource.setItem(type, name, item);
-    });
+    await Promise.all(
+      this.dataSources.map((dataSource) =>
+        dataSource.setItem(collection, name, item)
+      ),
+    );
   }
 
-  public setItems<TType extends string, TItem>(
-    type: TType,
+  public async setItems<TCollection extends string, TItem>(
+    collection: TCollection,
     items: Array<[string, TItem]>,
   ) {
-    this.dataSources.forEach((dataSource) => {
-      dataSource.setItems(type, items);
-    });
+    await Promise.all(
+      this.dataSources.map((dataSource) =>
+        dataSource.setItems(collection, items)
+      ),
+    );
   }
 
-  public deleteItem<TType extends string>(
-    type: TType,
+  public async deleteItem<TCollection extends string>(
+    collection: TCollection,
     name: string,
-  ): void {
-    this.dataSources.forEach((dataSource) => {
-      dataSource.deleteItem(type, name);
-    });
+  ) {
+    await Promise.all(
+      this.dataSources.map((dataSource) =>
+        dataSource.deleteItem(collection, name)
+      ),
+    );
   }
 
-  public deleteItems<TType extends string>(type: TType): void {
-    this.dataSources.forEach((dataSource) => {
-      dataSource.deleteItems(type);
-    });
+  public async deleteItems<TCollection extends string>(
+    collection: TCollection,
+  ) {
+    await Promise.all(
+      this.dataSources.map((dataSource) => dataSource.deleteItems(collection)),
+    );
   }
 }

@@ -8,51 +8,51 @@ export type ItemDriveSchema = Record<string, unknown>;
 // TODO: Create special item drive implementation for automatically updating properties of specific items such as created_at, updated_at, deleted_at, etc. Or common building blocks for items such as counters, etc.
 
 export class ItemDrive<TItemDriveSchema extends ItemDriveSchema> {
-  public constructor(
-    private readonly dataSource: DataSource,
-  ) {}
+  public constructor(private readonly dataSource: DataSource) {}
 
-  public setItem<TType extends keyof TItemDriveSchema>(
-    type: TType,
+  public async setItem<TCollection extends keyof TItemDriveSchema>(
+    collection: TCollection,
     name: string,
-    item: TItemDriveSchema[TType],
+    item: TItemDriveSchema[TCollection],
   ) {
-    this.dataSource.setItem(type.toString(), name, item);
+    await this.dataSource.setItem(collection.toString(), name, item);
   }
 
-  public setItems<TType extends keyof TItemDriveSchema>(
-    type: TType,
-    items: Array<[string, TItemDriveSchema[TType]]>,
+  public async setItems<TCollection extends keyof TItemDriveSchema>(
+    collection: TCollection,
+    items: Array<[string, TItemDriveSchema[TCollection]]>,
   ) {
-    this.dataSource.setItems(type.toString(), items);
+    await this.dataSource.setItems(collection.toString(), items);
   }
 
-  public getItem<TType extends keyof TItemDriveSchema>(
-    type: TType,
+  public getItem<TCollection extends keyof TItemDriveSchema>(
+    collection: TCollection,
     name: string,
   ) {
-    return this.dataSource.getItem<string, TItemDriveSchema[TType]>(
-      type.toString(),
+    return this.dataSource.getItem<string, TItemDriveSchema[TCollection]>(
+      collection.toString(),
       name,
     );
   }
 
-  public getItems<TType extends keyof TItemDriveSchema>(
-    type: TType,
-  ): Array<[string, TItemDriveSchema[TType]]> {
-    return this.dataSource.getItems(type.toString());
+  public getItems<TCollection extends keyof TItemDriveSchema>(
+    collection: TCollection,
+  ) {
+    return this.dataSource.getItems<string, TItemDriveSchema[TCollection]>(
+      collection.toString(),
+    );
   }
 
-  public deleteItem<TType extends keyof TItemDriveSchema>(
-    type: TType,
+  public deleteItem<TCollection extends keyof TItemDriveSchema>(
+    collection: TCollection,
     name: string,
   ) {
-    this.dataSource.deleteItem(type.toString(), name);
+    this.dataSource.deleteItem(collection.toString(), name);
   }
 
-  public deleteItems<TType extends keyof TItemDriveSchema>(
-    type: TType,
+  public deleteItems<TCollection extends keyof TItemDriveSchema>(
+    collection: TCollection,
   ) {
-    this.dataSource.deleteItems(type.toString());
+    this.dataSource.deleteItems(collection.toString());
   }
 }

@@ -1,4 +1,4 @@
-import { ensureFileSync, existsSync } from "@std/fs";
+import { ensureFile, exists } from "@std/fs";
 import { DataSource } from "./data_source.ts";
 
 export class FSDataSource implements DataSource {
@@ -8,37 +8,52 @@ export class FSDataSource implements DataSource {
     private readonly decode = makeJSONDecoder<unknown>(),
   ) {}
 
-  public getItem<TType extends string, TItem>(
-    type: TType,
+  public async getItem<TCollection extends string, TItem>(
+    collection: TCollection,
     name: string,
-  ): TItem | undefined {
+  ): Promise<TItem | undefined> {
     if (!this.decode) {
       throw new Error("Unexpected call to getItem without decode");
     }
 
-    return readItem(this.path, name, type, this.decode) as TItem | undefined;
+    return await readItem<TItem>(
+      this.path,
+      name,
+      collection,
+      this.decode as ItemDecoder<TItem>,
+    );
   }
 
-  public getItems<TType extends string, TItem>(
-    type: TType,
-  ): Array<[string, TItem]> {
-    const dir = this.path(type);
-    if (existsSync(dir, { isReadable: true, isDirectory: true })) {
+  public async getItems<TCollection extends string, TItem>(
+    collection: TCollection,
+  ): Promise<Array<[string, TItem]>> {
+    const dir = this.path(collection);
+    if (await exists(dir, { isReadable: true, isDirectory: true })) {
       return [];
     }
 
-    return Array.from(Deno.readDirSync(dir), (entry) => {
-      const item = this.getItem<TType, TItem>(type, entry.name);
-      if (item === undefined) {
-        throw new Error(`Failed to read item ${entry.name} of type ${type}`);
-      }
+    return Promise.all(
+      await Array.fromAsync(
+        Deno.readDir(dir),
+        async (entry) => {
+          const item = await this.getItem<TCollection, TItem>(
+            collection,
+            entry.name,
+          );
+          if (item === undefined) {
+            throw new Error(
+              `Failed to read item ${entry.name} of collection ${collection}`,
+            );
+          }
 
-      return [entry.name, item];
-    });
+          return [entry.name, item];
+        },
+      ),
+    );
   }
 
-  public setItem<TType extends string, TItem>(
-    type: TType,
+  public async setItem<TCollection extends string, TItem>(
+    collection: TCollection,
     name: string,
     item: TItem,
   ) {
@@ -46,36 +61,39 @@ export class FSDataSource implements DataSource {
       throw new Error("Unexpected call to setItem without encode");
     }
 
-    writeItem(this.path, item, name, type, this.encode);
+    await writeItem(this.path, item, name, collection, this.encode);
   }
 
-  public setItems<TType extends string, TItem>(
-    type: TType,
+  public async setItems<TCollection extends string, TItem>(
+    collection: TCollection,
     items: Array<[string, TItem]>,
   ) {
     for (const [name, item] of items) {
-      this.setItem(type, name, item);
+      await this.setItem(collection, name, item);
     }
   }
 
-  public deleteItem<TType extends string>(
-    type: TType,
+  public async deleteItem<TCollection extends string>(
+    collection: TCollection,
     name: string,
-  ): void {
-    Deno.removeSync(this.path(type, name));
+  ) {
+    await Deno.remove(this.path(collection, name));
   }
 
-  public deleteItems<TType extends string>(type: TType): void {
-    Deno.removeSync(this.path(type));
+  public async deleteItems<TCollection extends string>(
+    collection: TCollection,
+  ) {
+    await Deno.remove(this.path(collection));
   }
 }
 
 export function jsonPathFromPrefix(prefix: string) {
-  return (type: string, name?: string) => `${prefix}${jsonPath(type, name)}`;
+  return (collection: string, name?: string) =>
+    `${prefix}${jsonPath(collection, name)}`;
 }
 
-export function jsonPath(type: string, name?: string) {
-  return `${type}${name ? `/${name}.json` : ""}`;
+export function jsonPath(collection: string, name?: string) {
+  return `${collection}${name ? `/${name}.json` : ""}`;
 }
 
 export function makeJSONDecoder<T>(): ItemDecoder<T> {
@@ -86,51 +104,57 @@ export function makeJSONEncoder<T>(): ItemEncoder<T> {
   return { text: (item: T) => JSON.stringify(item, null, 2) + "\n" };
 }
 
-export function readItem<T = unknown>(
+export async function readItem<T = unknown>(
   path: ItemPath,
   name: string,
-  type: string,
+  collection: string,
   decode: ItemDecoder<T>,
-): T | undefined {
-  const file = path(type, name);
-  if (!existsSync(file, { isReadable: true, isFile: true })) {
+): Promise<T | undefined> {
+  const file = path(collection, name);
+  if (!(await exists(file, { isReadable: true, isFile: true }))) {
     return undefined;
   }
 
   if ("text" in decode) {
-    const text = Deno.readTextFileSync(file);
-    return decode.text(text, name, type);
+    return decode.text(
+      await Deno.readTextFile(file),
+      name,
+      collection,
+    );
   }
 
-  const data = Deno.readFileSync(file);
-  return decode.binary(data, name, type);
+  return decode.binary(await Deno.readFile(file), name, collection);
 }
 
 export type ItemDecoder<T = unknown> =
-  | { text: (text: string, name: string, type: string) => T }
-  | { binary: (data: Uint8Array, name: string, type: string) => T };
+  | { text: (text: string, name: string, collection: string) => T }
+  | { binary: (data: Uint8Array, name: string, collection: string) => T };
 
-export function writeItem<T = unknown>(
+export async function writeItem<T = unknown>(
   path: ItemPath,
   item: T,
   name: string,
-  type: string,
+  collection: string,
   encode: ItemEncoder<T>,
 ) {
-  const file = path(type, name);
-  ensureFileSync(file);
+  const file = path(collection, name);
+  await ensureFile(file);
   if ("text" in encode) {
-    const text = encode.text(item, name, type);
-    Deno.writeTextFileSync(file, text);
+    await Deno.writeTextFile(
+      file,
+      encode.text(item, name, collection),
+    );
     return;
   }
 
-  const data = encode.binary(item, name, type);
-  Deno.writeFileSync(file, data);
+  await Deno.writeFileSync(
+    file,
+    encode.binary(item, name, collection),
+  );
 }
 
 export type ItemEncoder<T = unknown> =
-  | { text: (item: T, name: string, type: string) => string }
-  | { binary: (item: T, name: string, type: string) => Uint8Array };
+  | { text: (item: T, name: string, collection: string) => string }
+  | { binary: (item: T, name: string, collection: string) => Uint8Array };
 
-export type ItemPath = (type: string, name?: string) => URL | string;
+export type ItemPath = (collection: string, name?: string) => URL | string;

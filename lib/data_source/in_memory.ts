@@ -10,47 +10,53 @@ export class InMemoryDataSource implements DataSource {
     private readonly storage: InMemoryStorage = new Map(),
   ) {}
 
-  public getItem<TType extends string, TItem>(
-    type: TType,
+  public getItem<TCollection extends string, TItem>(
+    collection: TCollection,
     name: string,
-  ): TItem | undefined {
-    return this.storage.get(type)?.get(name) as TItem | undefined;
+  ): Promise<TItem | undefined> {
+    return Promise.resolve(
+      this.storage.get(collection)?.get(name) as TItem | undefined,
+    );
   }
 
-  public getItems<TType extends string, TItem>(
-    type: TType,
-  ): Array<[string, TItem]> {
-    return Array.from(
-      this.storage.get(type)?.entries() ?? [],
-    ) as Array<[string, TItem]>;
+  public getItems<TCollection extends string, TItem>(
+    collection: TCollection,
+  ): Promise<Array<[string, TItem]>> {
+    return Promise.resolve(Array.from(
+      this.storage.get(collection)?.entries() ?? [],
+    ) as Array<[string, TItem]>);
   }
 
-  public setItem<TType extends string, TItem>(
-    type: TType,
+  public setItem<TCollection extends string, TItem>(
+    collection: TCollection,
     name: string,
     item: TItem,
   ) {
-    const items = this.storage.get(type) ?? new Map();
+    const items = this.storage.get(collection) ?? new Map();
     items.set(name, item);
-    this.storage.set(type, items);
+    this.storage.set(collection, items);
+    return Promise.resolve();
   }
 
-  public setItems<TType extends string, TItem>(
-    type: TType,
+  public setItems<TCollection extends string, TItem>(
+    collection: TCollection,
     items: Array<[string, TItem]>,
   ) {
     const itemMap = new Map(items);
-    this.storage.set(type, itemMap);
+    this.storage.set(collection, itemMap);
+    return Promise.resolve();
   }
 
-  public deleteItem<TType extends string>(
-    type: TType,
+  public deleteItem<TCollection extends string>(
+    collection: TCollection,
     name: string,
-  ): void {
-    this.storage.get(type)?.delete(name);
+  ) {
+    this.storage.get(collection)?.delete(name);
+    return Promise.resolve();
   }
 
-  public deleteItems<TType extends string>(type: TType): void {
-    this.storage.delete(type);
+  public deleteItems<TCollection extends string>(collection: TCollection) {
+    this.storage.delete(collection);
+    return Promise.resolve();
   }
 }
