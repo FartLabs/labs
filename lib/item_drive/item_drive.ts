@@ -48,9 +48,16 @@ export class ItemDrive<TItemDriveSchema extends ItemDriveSchema> {
    */
   public addEventListener(
     type: ItemDriveEventType,
-    fn: (event: Event) => void,
+    fn: (
+      detail: ItemDriveEventDetail<TItemDriveSchema[keyof TItemDriveSchema]>,
+    ) => void,
   ) {
-    this.eventTarget.addEventListener(type, fn);
+    function handleEvent(event: Event) {
+      fn((event as CustomEvent).detail);
+    }
+
+    this.eventTarget.addEventListener(type, handleEvent);
+    return () => this.eventTarget.removeEventListener(type, handleEvent);
   }
 
   /**

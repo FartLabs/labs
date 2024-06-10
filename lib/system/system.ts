@@ -17,6 +17,10 @@ export class System {
     // on app load, fetch new data from data sources and sync with item drives. trigger a rerender on update.
   ) {}
 
+  // Automatically reflect updated system changes as code in Deno Deploy.
+
+  // TODO: Refactor as async.
+  // TODO: Rethink how to handle automation outputs.
   public automate(event: SystemEvent): void {
     const automation = this.automationService.itemDrive.getItem(
       "automation",
@@ -27,6 +31,7 @@ export class System {
     }
 
     // Consider storing outputs in an array to reference by name in later steps.
+    // ...Or associate the output to the id of the step that produced it.
     const props = { ...(event.props || {}) };
     automation.steps.forEach((step) => {
       if (step.defaultProps !== undefined) {

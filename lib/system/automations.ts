@@ -24,7 +24,7 @@ export function withStep(
   automation: Automation,
   step: AutomationStep,
 ): Automation {
-  automation.steps = automation.steps.concat([step]);
+  automation.steps.push(step);
   return automation;
 }
 
