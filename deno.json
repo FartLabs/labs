@@ -8,7 +8,8 @@
     "@std/fs": "jsr:@std/fs@^0.229.1",
     "@std/yaml": "jsr:@std/yaml@^0.224.0",
     "jsonld": "npm:jsonld@^8.3.2",
-    "labs/": "./"
+    "labs/": "./",
+    "schema-dts": "npm:schema-dts@^1.1.2"
   },
   "compilerOptions": {
     "jsx": "react-jsx",
