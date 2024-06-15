@@ -35,34 +35,48 @@ export interface PrimitivePropertyTypeMap {
   [PROPERTY_NUMBER]: number;
 }
 
+/**
+ * Struct is a data structure that semantically describes a type.
+ */
 interface Struct {
-  [propertyName: string]: StructProperty;
+  "@id": string;
+  properties: {
+    [propertyName: string]: StructProperty;
+  };
 }
 
 interface StructProperty {
+  /**
+   * `@id` refers to the type of the property.
+   */
   "@id": string;
   // Distinguish named and primitive types.
-  dataType: string;
-  description?: string;
   repeatable?: boolean;
 }
 
+const ID_WEBRING = "https://0xd14.id/#Webring";
+const ID_WEBRING_RING = "https://0xd14.id/#Webring/Ring";
+const ID_PROPERTY_WEBRING_NAME = "https://0xd14.id/#Webring/name";
+const ID_PROPERTY_WEBRING_VERSION = "https://0xd14.id/#Webring/version";
+const ID_PROPERTY_WEBRING_RING = "https://0xd14.id/#Webring/ring";
+const ID_PROPERTY_WEBRING_RING_LINK = "https://0xd14.id/#Webring/Ring/link";
+const ID_PROPERTY_WEBRING_RING_NAME = "https://0xd14.id/#Webring/Ring/name";
+
+// TODO: Make this as ergonomic as possible.
+const ringStruct: Struct = {
+  "@id": ID_WEBRING_RING,
+  properties: {
+    link: { "@id": ID_PROPERTY_WEBRING_RING_LINK },
+    name: { "@id": ID_PROPERTY_WEBRING_RING_NAME },
+  },
+};
+
 const webringStruct: Struct = {
-  name: {
-    "@id": "https://0xd14.id/#Webring/name",
-    dataType: PROPERTY_TEXT,
-    description: "The name of the webring.",
-  },
-  version: {
-    "@id": "https://0xd14.id/#Webring/version",
-    dataType: PROPERTY_NUMBER,
-    description: "The version of the webring.",
-  },
-  ring: {
-    "@id": "https://0xd14.id/#Webring/ring",
-    dataType: "Webring/Ring",
-    description: "The ring of the webring.",
-    repeatable: true,
+  "@id": ID_WEBRING,
+  properties: {
+    name: { "@id": ID_PROPERTY_WEBRING_NAME },
+    version: { "@id": ID_PROPERTY_WEBRING_VERSION },
+    ring: { "@id": ID_PROPERTY_WEBRING_RING, repeatable: true },
   },
 };
 
