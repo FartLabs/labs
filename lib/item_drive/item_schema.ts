@@ -1,12 +1,13 @@
+import { Item } from "labs/items.ts";
+
 const speciesSchema = {
   id: "https://example.com/Species",
   properties: {
-    name: { type: "string" },
-    classification: { type: "string" },
-    lifespan: { type: "number" },
-    habitat: { type: "string" },
+    classification: { type: "https://schema.org/Text" },
+    lifespan: { type: "https://schema.org/Number" },
+    habitat: { type: "https://schema.org/Text" },
   },
-} as const satisfies ItemSchema;
+} as const satisfies ItemSchema<keyof TypeMap>;
 
 interface TypeMap {
   "https://schema.org/Text": string;
@@ -15,13 +16,15 @@ interface TypeMap {
   "https://schema.org/Date": string;
   "https://schema.org/Time": string;
   "https://schema.org/Number": number;
+  "https://example.com/Dog": ItemOf<typeof dogSchema, TypeMap>;
 }
 
-type ItemOf<T extends ItemSchema, U extends Record<string, any>> = {
-  [K in keyof T["properties"]]: T["properties"][K] extends { type: IDType }
-    ? IDType
-    : T["properties"][K] extends { type: string } ? U[K]
-    : never;
+type ItemOf<
+  TItemSchema extends ItemSchema<keyof TTypeMap>,
+  TTypeMap extends { [key: string]: any },
+> = {
+  [P in keyof TItemSchema["properties"]]:
+    TTypeMap[TItemSchema["properties"][P]["type"]];
 };
 
 // Text
@@ -31,7 +34,9 @@ type ItemOf<T extends ItemSchema, U extends Record<string, any>> = {
 // Time
 // Number
 
-type ItemID<T extends ItemSchema> = T["id"];
+function ref<T extends string>(schema: ItemSchema<T>) {
+  return { ref: schema.id as T };
+}
 
 const dogSchema = {
   id: "https://example.com/Dog",
@@ -39,24 +44,24 @@ const dogSchema = {
     name: { type: "https://schema.org/Text" },
     age: { type: "https://schema.org/Number" },
     // breed: { type: "https://example.com/Breed" },
-    species: { type: { id: speciesSchema.id } },
+    species: { type: ref(speciesSchema) },
   },
-} as const satisfies ItemSchema;
+} as const satisfies ItemSchema<keyof TypeMap>;
 
-export interface ItemSchema {
-  id: string;
+export interface ItemSchema<T extends string> {
+  id: T;
   properties: {
-    [propertyName: string]: ItemProperty;
+    [propertyName: string]: ItemProperty<T>;
   };
 }
 
-export interface ItemProperty {
+export interface ItemProperty<T extends string> {
   repeatable?: boolean;
-  type: ItemType;
+  type: ItemPropertyType<T>;
 }
 
-export type ItemType = string | IDType;
+export type ItemPropertyType<T extends string> =
+  | T
+  | { ref: T };
 
-export interface IDType {
-  id: string;
-}
+// An ItemSchema could satisfy multiple schema.org types.
