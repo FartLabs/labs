@@ -10,6 +10,7 @@ type ItemOf<
   >;
 };
 
+// TODO
 type PropertyOf<
   TProperty extends ItemProperty<StringOnly<keyof TTypeMap>>,
   TTypeMap extends AnyRecord,
@@ -26,12 +27,14 @@ function idOf<T extends string>(schema: ItemSchema<T>): ItemID<T> {
 }
 
 export interface ItemSchema<T extends string> extends ItemID<T> {
-  properties: Record<string, ItemProperty<T>>;
+  properties: Record<string, ItemProperty<T, T>>;
 }
 
-export interface ItemProperty<T extends string> {
+// ItemPropertySchema is a schema for a property of an item.
+export interface ItemProperty<TPrimitive extends string, TID extends string> {
+  "@type": ItemPropertyType<TPrimitive>;
+  "@id"?: TID; // ID of schema property.
   repeatable?: boolean;
-  "@type": ItemPropertyType<T>;
 }
 
 export type ItemPropertyType<T extends string> =
@@ -59,10 +62,7 @@ if (import.meta.main) {
     "https://schema.org/name": { type: "https://schema.org/Text" };
     "https://schema.org/alumniOf": {
       repeatable: true;
-      type: ItemID<
-        | "https://schema.org/EducationalOrganization"
-        | "https://schema.org/Organization"
-      >;
+      type: ItemID<"https://schema.org/Organization">;
     };
   }
 
@@ -92,6 +92,7 @@ if (import.meta.main) {
   const dogSchema = {
     "@id": "https://schema.example.com/Dog",
     properties: {
+      // TODO: Reference properties instead of types.
       name: { "@type": "https://schema.org/Text" },
       age: { "@type": "https://schema.org/Number" },
       // species: { "@type": speciesSchema["@id"] },
