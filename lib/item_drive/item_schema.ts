@@ -13,14 +13,14 @@ type ItemOf<
 type PropertyOf<
   TProperty extends ItemProperty<StringOnly<keyof TTypeMap>>,
   TTypeMap extends AnyRecord,
-> = TProperty["type"] extends ItemRef<string> ? ItemRef<string>
+> = TProperty["type"] extends ItemID<string> ? ItemID<string>
   : (TProperty["type"] extends keyof TTypeMap ? TTypeMap[TProperty["type"]]
     : never);
 
 type AnyRecord = Record<string, any>;
 
-function ref<T extends string>(schema: ItemSchema<T>) {
-  return { ref: schema.id as T };
+function idOf<T extends string>(schema: ItemSchema<T>): ItemID<T> {
+  return { "@id": schema.id };
 }
 
 export interface ItemSchema<T extends string> {
@@ -37,28 +37,31 @@ export interface ItemProperty<T extends string> {
 
 export type ItemPropertyType<T extends string> =
   | T
-  | ItemRef<T>;
+  | ItemID<T>;
 
-export interface ItemRef<T extends string> {
-  ref: T;
+export interface ItemID<T extends string> {
+  "@id": T;
 }
 
 // An ItemSchema could satisfy multiple schema.org types.
 
 if (import.meta.main) {
-  interface TypeMap {
+  interface Primitives {
     "https://schema.org/Text": string;
     "https://schema.org/DateTime": string;
     "https://schema.org/Boolean": boolean;
     "https://schema.org/Date": string;
     "https://schema.org/Time": string;
     "https://schema.org/Number": number;
-    "https://example.com/Species": ItemOf<typeof speciesSchema, TypeMap>;
-    "https://example.com/Dog": ItemOf<typeof dogSchema, TypeMap>;
+  }
+
+  interface TypeMap extends Primitives {
+    "https://schema.example.com/Species": ItemOf<typeof speciesSchema, TypeMap>;
+    "https://schema.example.com/Dog": ItemOf<typeof dogSchema, TypeMap>;
   }
 
   const speciesSchema = {
-    id: "https://example.com/Species",
+    id: "https://schema.example.com/Species",
     properties: {
       classification: { type: "https://schema.org/Text" },
       lifespan: { type: "https://schema.org/Number" },
@@ -66,7 +69,7 @@ if (import.meta.main) {
     },
   } as const satisfies ItemSchema<keyof TypeMap>;
 
-  type Species = ItemOf<typeof speciesSchema, TypeMap>;
+  type Species = TypeMap["https://schema.example.com/Species"];
 
   const species: Species = {
     classification: "Mammal",
@@ -76,21 +79,20 @@ if (import.meta.main) {
   console.log(species);
 
   const dogSchema = {
-    id: "https://example.com/Dog",
+    id: "https://schema.example.com/Dog",
     properties: {
       name: { type: "https://schema.org/Text" },
       age: { type: "https://schema.org/Number" },
-      // breed: { type: "https://example.com/Breed" },
-      species: { type: ref(speciesSchema) },
+      species: { type: idOf(speciesSchema) },
     },
   } as const satisfies ItemSchema<keyof TypeMap>;
 
-  type Dog = ItemOf<typeof dogSchema, TypeMap>;
+  type Dog = TypeMap["https://schema.example.com/Dog"];
 
   const dog: Dog = {
     name: "Fido",
     age: 3,
-    species: { ref: "https://example.com/species/dog" },
+    species: { "@id": "https://example.com/species/dog" },
   };
   console.log(dog);
 }
