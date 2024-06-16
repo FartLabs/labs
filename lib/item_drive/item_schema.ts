@@ -13,7 +13,9 @@ type ItemOf<
 type PropertyOf<
   TProperty extends ItemProperty<StringOnly<keyof TTypeMap>>,
   TTypeMap extends AnyRecord,
-> = TProperty["type"] extends ItemID<string> ? ItemID<string>
+> = TProperty["repeatable"] extends true
+  ? PropertyOf<{ repeatable: false; type: TProperty["type"] }, TTypeMap>[]
+  : TProperty["type"] extends ItemID<string> ? ItemID<string>
   : (TProperty["type"] extends keyof TTypeMap ? TTypeMap[TProperty["type"]]
     : never);
 
@@ -65,7 +67,7 @@ if (import.meta.main) {
     properties: {
       classification: { type: "https://schema.org/Text" },
       lifespan: { type: "https://schema.org/Number" },
-      habitat: { type: "https://schema.org/Text" },
+      habitat: { type: "https://schema.org/Text", repeatable: true },
     },
   } as const satisfies ItemSchema<keyof TypeMap>;
 
@@ -74,7 +76,7 @@ if (import.meta.main) {
   const species: Species = {
     classification: "Mammal",
     lifespan: 10,
-    habitat: "Land",
+    habitat: ["Land"],
   };
   console.log(species);
 
