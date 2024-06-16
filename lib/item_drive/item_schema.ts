@@ -14,7 +14,7 @@ type PropertyOf<
   TProperty extends ItemProperty<StringOnly<keyof TTypeMap>>,
   TTypeMap extends AnyRecord,
 > = TProperty["repeatable"] extends true
-  ? PropertyOf<{ repeatable: false; type: TProperty["type"] }, TTypeMap>[]
+  ? Array<PropertyOf<Pick<TProperty, "type">, TTypeMap>>
   : TProperty["type"] extends ItemID<string> ? ItemID<string>
   : (TProperty["type"] extends keyof TTypeMap ? TTypeMap[TProperty["type"]]
     : never);
