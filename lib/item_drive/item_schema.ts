@@ -14,34 +14,31 @@ type PropertyOf<
   TProperty extends ItemProperty<StringOnly<keyof TTypeMap>>,
   TTypeMap extends AnyRecord,
 > = TProperty["repeatable"] extends true
-  ? Array<PropertyOf<Pick<TProperty, "type">, TTypeMap>>
-  : TProperty["type"] extends ItemID<string> ? ItemID<string>
-  : (TProperty["type"] extends keyof TTypeMap ? TTypeMap[TProperty["type"]]
+  ? Array<PropertyOf<Omit<TProperty, "repeatable">, TTypeMap>>
+  : TProperty["@type"] extends ItemID ? ItemID
+  : (TProperty["@type"] extends keyof TTypeMap ? TTypeMap[TProperty["@type"]]
     : never);
 
 type AnyRecord = Record<string, any>;
 
 function idOf<T extends string>(schema: ItemSchema<T>): ItemID<T> {
-  return { "@id": schema.id };
+  return { "@id": schema["@id"] };
 }
 
-export interface ItemSchema<T extends string> {
-  id: T;
-  properties: {
-    [propertyName: string]: ItemProperty<T>;
-  };
+export interface ItemSchema<T extends string> extends ItemID<T> {
+  properties: Record<string, ItemProperty<T>>;
 }
 
 export interface ItemProperty<T extends string> {
   repeatable?: boolean;
-  type: ItemPropertyType<T>;
+  "@type": ItemPropertyType<T>;
 }
 
 export type ItemPropertyType<T extends string> =
   | T
   | ItemID<T>;
 
-export interface ItemID<T extends string> {
+export interface ItemID<T extends string = string> {
   "@id": T;
 }
 
@@ -57,17 +54,29 @@ if (import.meta.main) {
     "https://schema.org/Number": number;
   }
 
+  // TODO
+  interface Properties {
+    "https://schema.org/name": { type: "https://schema.org/Text" };
+    "https://schema.org/alumniOf": {
+      repeatable: true;
+      type: ItemID<
+        | "https://schema.org/EducationalOrganization"
+        | "https://schema.org/Organization"
+      >;
+    };
+  }
+
   interface TypeMap extends Primitives {
     "https://schema.example.com/Species": ItemOf<typeof speciesSchema, TypeMap>;
     "https://schema.example.com/Dog": ItemOf<typeof dogSchema, TypeMap>;
   }
 
   const speciesSchema = {
-    id: "https://schema.example.com/Species",
+    "@id": "https://schema.example.com/Species",
     properties: {
-      classification: { type: "https://schema.org/Text" },
-      lifespan: { type: "https://schema.org/Number" },
-      habitat: { type: "https://schema.org/Text", repeatable: true },
+      classification: { "@type": "https://schema.org/Text" },
+      lifespan: { "@type": "https://schema.org/Number" },
+      habitat: { "@type": "https://schema.org/Text", repeatable: true },
     },
   } as const satisfies ItemSchema<keyof TypeMap>;
 
@@ -81,11 +90,12 @@ if (import.meta.main) {
   console.log(species);
 
   const dogSchema = {
-    id: "https://schema.example.com/Dog",
+    "@id": "https://schema.example.com/Dog",
     properties: {
-      name: { type: "https://schema.org/Text" },
-      age: { type: "https://schema.org/Number" },
-      species: { type: idOf(speciesSchema) },
+      name: { "@type": "https://schema.org/Text" },
+      age: { "@type": "https://schema.org/Number" },
+      // species: { "@type": speciesSchema["@id"] },
+      species: { "@type": idOf(speciesSchema) },
     },
   } as const satisfies ItemSchema<keyof TypeMap>;
 
