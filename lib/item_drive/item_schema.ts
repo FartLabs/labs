@@ -26,7 +26,9 @@ function idOf<T extends string>(schema: ItemSchema<T>): ItemID<T> {
   return { "@id": schema["@id"] };
 }
 
+// Default fact storage is located in the item drive.
 export interface ItemSchema<T extends string> extends ItemID<T> {
+  // attributes.
   properties: Record<string, ItemProperty<T, T>>;
 }
 
@@ -37,6 +39,7 @@ export interface ItemProperty<TPrimitive extends string, TID extends string> {
   repeatable?: boolean;
 }
 
+// TODO: Add support for union types with arrays.
 export type ItemPropertyType<T extends string> =
   | T
   | ItemID<T>;
