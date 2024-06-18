@@ -10,7 +10,7 @@ export interface DataSource {
 export interface FactQuery {
   itemID?: string;
   attribute?: string;
-  type?: string;
+  value?: string;
   // valueAtOrAbove?: number;
   // valueAtOrBelow?: number;
   // createdAtOrAfter?: Date;

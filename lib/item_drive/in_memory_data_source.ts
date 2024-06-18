@@ -41,11 +41,10 @@ export class InMemoryDataSource implements DataSource {
 
     let facts = Array.from(allFacts.values());
     if (query.attribute !== undefined) {
-      facts = facts.filter((fact) => fact.attribute === query.attribute);
-    }
-
-    if (query.type !== undefined) {
-      facts = facts.filter((fact) => fact.type === query.type);
+      facts = facts.filter((fact) =>
+        fact.attribute === query.attribute &&
+        (query.value === undefined || fact.value === query.value)
+      );
     }
 
     return Promise.resolve(facts);

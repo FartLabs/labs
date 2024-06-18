@@ -1,4 +1,3 @@
-import { ulid } from "@std/ulid";
 import type { DataSource, FactQuery } from "./data_source.ts";
 import type { TypedValue } from "./typed_value.ts";
 import { Fact } from "./fact.ts";
@@ -10,8 +9,8 @@ export interface Item {
 }
 
 export interface ItemDriveInterface extends DataSource {
-  insertItem(item: Item): Promise<void>;
-  insertItems(items: Item[]): Promise<void>;
+  insertItem(item: Item): Promise<void>; // TODO: Argument as Partial. Return inserted items.
+  insertItems(items: Item[]): Promise<void>; // TODO: Argument as Partial. Return inserted items.
   fetchItems(query: ItemQuery): Promise<Item[]>;
   fetchItem(itemID: string): Promise<Item>;
 }
@@ -19,16 +18,28 @@ export interface ItemDriveInterface extends DataSource {
 export interface ItemQuery extends FactQuery {
 }
 
+function factsFrom(item: Item): Partial<Fact>[] {
+  return Object.entries(item.attributes).map(([attribute, value]) => ({
+    itemID: item.itemID,
+    attribute,
+    value: value.value,
+    numericalValue: value.numericalValue,
+    type: value.type,
+    flags: 0,
+  }));
+}
+
 export class ItemDrive implements ItemDriveInterface {
   public constructor(public dataSource: DataSource) {}
 
-  // https://github.com/alexobenauer/Wonder/tree/3e411bb837fd7e32616ba7ead19c162e7d5abb1e?tab=readme-ov-file#create-items
   public insertItem(item: Item): Promise<void> {
-    throw new Error("Method not implemented.");
+    return this.dataSource.insertFacts(factsFrom(item));
   }
 
   public insertItems(items: Item[]): Promise<void> {
-    throw new Error("Method not implemented.");
+    return this.dataSource.insertFacts(
+      items.flatMap((item) => factsFrom(item)),
+    );
   }
 
   public fetchItems(query: ItemQuery): Promise<Item[]> {

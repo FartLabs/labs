@@ -2,6 +2,7 @@ export interface TypedValue {
   type: ValueType;
   value: string;
   numericalValue?: number;
+  // attribute?: string;
 }
 
 export type ValueType = (typeof VALUE_TYPES)[number];
