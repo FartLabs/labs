@@ -9,8 +9,8 @@ export interface Item {
 }
 
 export interface ItemDriveInterface extends DataSource {
-  insertItem(item: Item): Promise<void>; // TODO: Argument as Partial. Return inserted items.
-  insertItems(items: Item[]): Promise<void>; // TODO: Argument as Partial. Return inserted items.
+  insertItem(item: Partial<Item>): Promise<void>; // TODO: Argument as Partial. Return inserted items.
+  insertItems(items: Partial<Item>[]): Promise<void>; // TODO: Argument as Partial. Return inserted items.
   fetchItems(query: ItemQuery): Promise<Item[]>;
   fetchItem(itemID: string): Promise<Item>;
 }
@@ -18,7 +18,11 @@ export interface ItemDriveInterface extends DataSource {
 export interface ItemQuery extends FactQuery {
 }
 
-function factsFrom(item: Item): Partial<Fact>[] {
+function factsFrom(item: Partial<Item>): Partial<Fact>[] {
+  if (item.attributes === undefined) {
+    return [];
+  }
+
   return Object.entries(item.attributes).map(([attribute, value]) => ({
     itemID: item.itemID,
     attribute,
