@@ -1,4 +1,4 @@
-import { ValueType } from "./typed_value.ts";
+import { TypedValueType } from "./typed_value.ts";
 
 export interface Fact {
   factID: string;
@@ -6,7 +6,7 @@ export interface Fact {
   attribute: string;
   value: string;
   numericalValue?: number;
-  type: ValueType;
+  type: TypedValueType;
   flags: number;
   timestamp: Date;
 }

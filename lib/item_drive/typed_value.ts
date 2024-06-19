@@ -1,11 +1,11 @@
 export interface TypedValue {
-  type: ValueType;
+  type: TypedValueType;
   value: string;
   numericalValue?: number;
   // attribute?: string;
 }
 
-export type ValueType = (typeof VALUE_TYPES)[number];
+export type TypedValueType = (typeof VALUE_TYPES)[number];
 
 export const VALUE_TYPES = [
   "text",
@@ -17,7 +17,7 @@ export const VALUE_TYPES = [
 
 export function toValue(
   numericalValue: number | undefined,
-  type: ValueType,
+  type: TypedValueType,
 ): string {
   if (numericalValue === undefined) {
     return "";
@@ -44,7 +44,7 @@ export function toValue(
 
 export function toNumericalValue(
   value: string,
-  type: ValueType,
+  type: TypedValueType,
 ): number | undefined {
   if (value === "") {
     return;

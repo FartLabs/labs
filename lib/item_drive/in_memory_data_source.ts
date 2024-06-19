@@ -30,12 +30,11 @@ export class InMemoryDataSource implements DataSource {
   }
 
   public fetchFacts(query: FactQuery): Promise<Fact[]> {
-    // TODO: If itemID is not provided, return all facts.
-    if (query.itemID === undefined) {
-      return Promise.resolve([]);
-    }
-
-    const allFacts = this.factsByItemID.get(query.itemID);
+    const allFacts = query.itemID !== undefined
+      ? this.factsByItemID.get(query.itemID)
+      : Array.from(this.factsByItemID.values()).flatMap((facts) =>
+        Array.from(facts.values())
+      );
     if (allFacts === undefined) {
       return Promise.resolve([]);
     }
