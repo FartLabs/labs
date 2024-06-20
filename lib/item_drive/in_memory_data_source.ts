@@ -29,25 +29,25 @@ export class InMemoryDataSource implements DataSource {
     return Promise.resolve();
   }
 
-  public fetchFacts(query: FactQuery): Promise<Fact[]> {
-    const allFacts = query.itemID !== undefined
-      ? this.factsByItemID.get(query.itemID)
-      : Array.from(this.factsByItemID.values()).flatMap((facts) =>
-        Array.from(facts.values())
-      );
-    if (allFacts === undefined) {
-      return Promise.resolve([]);
+  public async fetchFacts(query: FactQuery): Promise<Fact[]> {
+    const facts: Fact[] = [];
+    if (query.itemID === undefined) {
+      for (const itemID of this.factsByItemID.keys()) {
+        facts.push(...await this.fetchFacts({ ...query, itemID }));
+      }
+
+      return facts;
     }
 
-    let facts = Array.from(allFacts.values());
-    if (query.attribute !== undefined) {
-      facts = facts.filter((fact) =>
-        fact.attribute === query.attribute &&
-        (query.value === undefined || fact.value === query.value)
-      );
+    const storedFacts = this.factsByItemID.get(query.itemID);
+    if (storedFacts === undefined) {
+      return facts;
     }
 
-    return Promise.resolve(facts);
+    return Array.from(storedFacts.values()).filter((fact) =>
+      (query.attribute === undefined || fact.attribute === query.attribute) &&
+      (query.value === undefined || fact.value === query.value)
+    );
   }
 
   public fetchFact(factID: string): Promise<Fact> {
