@@ -29,19 +29,19 @@ export class InMemoryDataSource implements DataSourceInterface {
     if (query.itemID === undefined) {
       return (await Promise.all(
         Array.from(this.factsByItemID.keys()).map((itemID) =>
-          this.fetchFacts({ ...query, itemID })
+          this.fetchFacts({ ...query, itemID: [itemID] })
         ),
       )).flat();
     }
 
-    const storedFacts = this.factsByItemID.get(query.itemID);
-    if (storedFacts === undefined) {
-      return [];
-    }
-
-    return Array.from(storedFacts.values()).filter((fact) =>
-      checkFact(fact, query)
+    const factsFromItemID = query.itemID.flatMap((itemID) =>
+      Array.from(this.factsByItemID.get(itemID)?.values() ?? [])
+        .filter((fact) => checkFact(fact, query))
     );
+    const factsFromFactID = (await Promise.all(
+      query.factID?.map((factID) => this.fetchFact(factID)) ?? [],
+    )).filter((fact) => checkFact(fact, query));
+    return factsFromItemID.concat(factsFromFactID);
   }
 
   public fetchFact(factID: string): Promise<Fact> {

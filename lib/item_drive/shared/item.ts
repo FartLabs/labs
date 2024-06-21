@@ -4,7 +4,7 @@ import type { TypedValue } from "./typed_value.ts";
 
 export interface Item {
   itemID: string;
-  type: string;
+  itemType: string;
   attributes: Record<string, Fact>;
 }
 
@@ -17,7 +17,7 @@ export function makeItem(
 ): Item {
   return {
     itemID: partialItem.itemID ?? ulid(date.getTime()),
-    type: partialItem.type ?? defaultItemType,
+    itemType: partialItem.itemType ?? defaultItemType,
     attributes: partialItem.attributes ?? {},
   };
 }

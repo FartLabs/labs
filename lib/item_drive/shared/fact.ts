@@ -1,10 +1,12 @@
 import { ulid } from "@std/ulid";
 import type { TypedValue, TypedValueType } from "./typed_value.ts";
 import { toNumericalValue, toValue } from "./typed_value.ts";
+import { DEFAULT_ITEM_TYPE } from "./item.ts";
 
 export interface Fact extends TypedValue {
   factID: string;
   itemID: string;
+  itemType: string;
   attribute: string;
   timestamp: Date;
   discarded: boolean;
@@ -24,12 +26,14 @@ export function makeFact(fact: Partial<Fact>): Fact {
   const timestamp = fact.timestamp ?? new Date();
   const factID = fact.factID ?? ulid(timestamp.getTime());
   const itemID = fact.itemID ?? ulid(timestamp.getTime());
+  const itemType = fact.itemType ?? DEFAULT_ITEM_TYPE;
   const type = fact.type ?? DEFAULT_FACT_TYPE;
   const value = fact.value ?? toValue(fact.numericalValue, type);
   const numericalValue = fact.numericalValue ?? toNumericalValue(value, type);
   return {
     factID,
     itemID,
+    itemType,
     timestamp,
     type,
     value,
