@@ -1,7 +1,7 @@
 import { ulid } from "@std/ulid";
 import type { Fact } from "./fact.ts";
 import { toNumericalValue, toValue } from "./typed_value.ts";
-import type { DataSource, FactQuery } from "./data_source.ts";
+import { checkFact, type DataSource, type FactQuery } from "./data_source.ts";
 
 export class InMemoryDataSource implements DataSource {
   public constructor(
@@ -9,44 +9,40 @@ export class InMemoryDataSource implements DataSource {
     public itemIDByFactID: Map<string, string> = new Map(),
   ) {}
 
-  public insertFact(partialFact: Partial<Fact>): Promise<void> {
+  public insertFact(partialFact: Partial<Fact>): Promise<Fact> {
     const fact = makeFact(partialFact);
     const allFacts = this.factsByItemID.get(fact.itemID) ?? new Map();
     this.factsByItemID.set(fact.itemID, allFacts.set(fact.factID, fact));
     this.itemIDByFactID.set(fact.factID, fact.itemID);
-    return Promise.resolve();
+    return Promise.resolve(fact);
   }
 
-  public async insertFacts(facts: Partial<Fact>[]): Promise<void> {
+  public async insertFacts(facts: Partial<Fact>[]): Promise<Fact[]> {
     const timestamp = new Date();
-    for (const fact of facts) {
-      await this.insertFact({
+    return await Promise.all(facts.map((fact) =>
+      this.insertFact({
         ...fact,
         timestamp: fact.timestamp ?? timestamp,
-      });
-    }
-
-    return Promise.resolve();
+      })
+    ));
   }
 
   public async fetchFacts(query: FactQuery): Promise<Fact[]> {
-    const facts: Fact[] = [];
     if (query.itemID === undefined) {
-      for (const itemID of this.factsByItemID.keys()) {
-        facts.push(...await this.fetchFacts({ ...query, itemID }));
-      }
-
-      return facts;
+      return (await Promise.all(
+        Array.from(this.factsByItemID.keys()).map((itemID) =>
+          this.fetchFacts({ ...query, itemID })
+        ),
+      )).flat();
     }
 
     const storedFacts = this.factsByItemID.get(query.itemID);
     if (storedFacts === undefined) {
-      return facts;
+      return [];
     }
 
     return Array.from(storedFacts.values()).filter((fact) =>
-      (query.attribute === undefined || fact.attribute === query.attribute) &&
-      (query.value === undefined || fact.value === query.value)
+      checkFact(query, fact)
     );
   }
 
@@ -93,6 +89,6 @@ export function makeFact(fact: Partial<Fact>): Fact {
     value,
     numericalValue,
     attribute: fact.attribute,
-    flags: fact.flags ?? 0,
+    discarded: fact.discarded ?? false,
   };
 }
