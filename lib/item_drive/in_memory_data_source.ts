@@ -1,9 +1,7 @@
-import { ulid } from "@std/ulid";
-import type { Fact } from "./fact.ts";
-import { toNumericalValue, toValue } from "./shared/typed_value.ts";
-import { checkFact, type DataSource, type FactQuery } from "./data_source.ts";
+import type { DataSourceInterface, Fact, FactQuery } from "./shared/mod.ts";
+import { checkFact, makeFact } from "./shared/mod.ts";
 
-export class InMemoryDataSource implements DataSource {
+export class InMemoryDataSource implements DataSourceInterface {
   public constructor(
     public factsByItemID: Map<string, Map<string, Fact>> = new Map(),
     public itemIDByFactID: Map<string, string> = new Map(),
@@ -42,7 +40,7 @@ export class InMemoryDataSource implements DataSource {
     }
 
     return Array.from(storedFacts.values()).filter((fact) =>
-      checkFact(query, fact)
+      checkFact(fact, query)
     );
   }
 
@@ -64,31 +62,4 @@ export class InMemoryDataSource implements DataSource {
 
     return Promise.resolve(fact);
   }
-}
-
-export function makeFact(fact: Partial<Fact>): Fact {
-  if (fact.attribute === undefined) {
-    throw new Error("Attribute is required");
-  }
-
-  if (fact.value === undefined && fact.numericalValue === undefined) {
-    throw new Error("One of value or numericalValue is required");
-  }
-
-  const timestamp = fact.timestamp ?? new Date();
-  const factID = fact.factID ?? ulid(timestamp.getTime());
-  const itemID = fact.itemID ?? ulid(timestamp.getTime());
-  const type = fact.type ?? "text";
-  const value = fact.value ?? toValue(fact.numericalValue, type);
-  const numericalValue = fact.numericalValue ?? toNumericalValue(value, type);
-  return {
-    factID,
-    itemID,
-    timestamp,
-    type,
-    value,
-    numericalValue,
-    attribute: fact.attribute,
-    discarded: fact.discarded ?? false,
-  };
 }

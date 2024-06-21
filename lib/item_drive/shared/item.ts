@@ -1,5 +1,6 @@
 import { ulid } from "@std/ulid";
 import type { Fact } from "./fact.ts";
+import type { TypedValue } from "./typed_value.ts";
 
 export interface Item {
   itemID: string;
@@ -18,5 +19,30 @@ export function makeItem(
     itemID: partialItem.itemID ?? ulid(date.getTime()),
     type: partialItem.type ?? defaultItemType,
     attributes: partialItem.attributes ?? {},
+  };
+}
+
+export function factsFrom(item: Partial<Item>): Partial<Fact>[] {
+  if (item.attributes === undefined) {
+    return [];
+  }
+
+  return Object.entries(item.attributes).map(([attribute, value]) =>
+    factFrom(attribute, value, item.itemID)
+  );
+}
+
+export function factFrom(
+  attribute: string,
+  value: TypedValue,
+  itemID?: string,
+): Partial<Fact> {
+  return {
+    attribute,
+    itemID,
+    value: value.value,
+    numericalValue: value.numericalValue,
+    type: value.type,
+    discarded: false,
   };
 }
