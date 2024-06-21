@@ -1,6 +1,6 @@
 import { ulid } from "@std/ulid";
 import type { Fact } from "./fact.ts";
-import { toNumericalValue, toValue } from "./typed_value.ts";
+import { toNumericalValue, toValue } from "./shared/typed_value.ts";
 import { checkFact, type DataSource, type FactQuery } from "./data_source.ts";
 
 export class InMemoryDataSource implements DataSource {

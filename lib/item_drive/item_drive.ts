@@ -1,50 +1,12 @@
-import { ulid } from "@std/ulid";
-import type { AttributeQuery, DataSource, FactQuery } from "./data_source.ts";
-import type { TypedValue } from "./typed_value.ts";
-import { Fact } from "./fact.ts";
-
-export interface Item {
-  readonly itemID: string;
-  readonly type: string;
-  readonly attributes: Record<string, Fact>;
-}
-
-export interface ItemDriveInterface extends DataSource {
-  insertItem(item: Partial<Item>): Promise<Item>;
-  insertItems(items: Partial<Item>[]): Promise<Item[]>;
-  fetchItems(query: ItemQuery): Promise<Item[]>;
-  fetchItem(itemID: string): Promise<Item>;
-}
-
-export interface ItemQuery {
-  itemID?: string;
-  attributes?: AttributeQuery[];
-}
-
-export function factsFrom(item: Partial<Item>): Partial<Fact>[] {
-  if (item.attributes === undefined) {
-    return [];
-  }
-
-  return Object.entries(item.attributes).map(([attribute, value]) =>
-    factFrom(attribute, value, item)
-  );
-}
-
-export function factFrom(
-  attribute: string,
-  value: TypedValue,
-  item?: Partial<Item>,
-): Partial<Fact> {
-  return {
-    attribute,
-    itemID: item?.itemID,
-    value: value.value,
-    numericalValue: value.numericalValue,
-    type: value.type,
-    discarded: false,
-  };
-}
+import type {
+  DataSource,
+  Fact,
+  FactQuery,
+  Item,
+  ItemDriveInterface,
+  ItemQuery,
+} from "./shared.ts";
+import { factsFrom, makeItem } from "./shared.ts";
 
 export class ItemDrive implements ItemDriveInterface {
   public constructor(public dataSource: DataSource) {}
@@ -83,32 +45,4 @@ export class ItemDrive implements ItemDriveInterface {
   public fetchFact(factID: string): Promise<Fact> {
     return this.dataSource.fetchFact(factID);
   }
-}
-
-export function itemFrom(
-  itemID: string,
-  type: string,
-  facts: Fact[],
-): Item {
-  return {
-    itemID,
-    type,
-    attributes: Object.fromEntries(
-      facts.map((fact) => [fact.attribute, fact]),
-    ),
-  };
-}
-
-export const DEFAULT_ITEM_TYPE = "empty" as const;
-
-export function makeItem(
-  partialItem: Partial<Item>,
-  defaultItemType: string = DEFAULT_ITEM_TYPE,
-  date = new Date(),
-): Item {
-  return {
-    itemID: partialItem.itemID ?? ulid(date.getTime()),
-    type: partialItem.type ?? defaultItemType,
-    attributes: partialItem.attributes ?? {},
-  };
 }
