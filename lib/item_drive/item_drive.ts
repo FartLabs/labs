@@ -8,7 +8,7 @@ import type {
 import { factsFrom, makeItem } from "./shared/mod.ts";
 
 export class ItemDrive implements ItemDriveInterface {
-  public constructor(public dataSource: DataSourceInterface) {}
+  public constructor(private dataSource: DataSourceInterface) {}
 
   public async insertItem(partialItem: Partial<Item>): Promise<Item> {
     const item = makeItem(partialItem);
