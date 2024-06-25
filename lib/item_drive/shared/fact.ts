@@ -28,15 +28,28 @@ export function makeFact(fact: Partial<Fact>): Fact {
   const itemID = fact.itemID ?? ulid(timestamp.getTime());
   const itemType = fact.itemType ?? DEFAULT_ITEM_TYPE;
   const type = fact.type ?? DEFAULT_FACT_TYPE;
-  const value = fact.value ?? toValue(fact.numericalValue, type);
-  const numericalValue = fact.numericalValue ?? toNumericalValue(value, type);
+  let value = fact.value ?? fact.numericalValue?.map((n) => toValue(n, type));
+  const numericalValue = fact.numericalValue ??
+    fact.value?.map((v) => {
+      const n = toNumericalValue(v, type);
+      if (n === undefined) {
+        throw new Error(`Invalid value for type ${type}: ${v}`);
+      }
+
+      return n;
+    });
+
+  if (value === undefined) {
+    value = numericalValue?.map((n) => toValue(n, type));
+  }
+
   return {
     factID,
     itemID,
     itemType,
     timestamp,
     type,
-    value,
+    value: value as string[],
     numericalValue,
     attribute: fact.attribute,
     discarded: fact.discarded ?? false,

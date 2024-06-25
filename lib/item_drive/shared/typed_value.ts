@@ -1,7 +1,8 @@
 export interface TypedValue {
   type: TypedValueType;
-  value: string;
-  numericalValue?: number;
+  value: string[];
+  numericalValue?: number[];
+  repeatable?: boolean;
 }
 
 export type TypedValueType = (typeof VALUE_TYPES)[number];
