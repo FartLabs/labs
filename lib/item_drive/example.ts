@@ -8,7 +8,7 @@ if (import.meta.main) {
   itemDrive.insertItem({
     itemType: "person",
     attributes: {
-      // Might as well be a list of partial facts, right?
+      // TODO: Might as well be a list of partial facts, right?
       name: {
         attribute: "name",
         value: "Alice",
