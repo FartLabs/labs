@@ -3,18 +3,20 @@ import type { TypedValue, TypedValueType } from "./typed_value.ts";
 import { toNumericalValue, toValue } from "./typed_value.ts";
 import { DEFAULT_ITEM_TYPE } from "./item.ts";
 
+export type PartialFact = Partial<Fact>;
+
 export interface Fact extends TypedValue {
   factID: string;
   itemID: string;
   itemType: string;
   attribute: string;
-  timestamp: Date;
+  timestamp: number;
   discarded: boolean;
 }
 
 export const DEFAULT_FACT_TYPE = "text" as const satisfies TypedValueType;
 
-export function makeFact(fact: Partial<Fact>): Fact {
+export function makeFact(fact: Partial<Fact>, date = new Date()): Fact {
   if (fact.attribute === undefined) {
     throw new Error("Attribute is required");
   }
@@ -23,9 +25,9 @@ export function makeFact(fact: Partial<Fact>): Fact {
     throw new Error("One of value or numericalValue is required");
   }
 
-  const timestamp = fact.timestamp ?? new Date();
-  const factID = fact.factID ?? ulid(timestamp.getTime());
-  const itemID = fact.itemID ?? ulid(timestamp.getTime());
+  const timestamp = fact.timestamp ?? date.getTime();
+  const factID = fact.factID ?? ulid(timestamp);
+  const itemID = fact.itemID ?? ulid(timestamp);
   const itemType = fact.itemType ?? DEFAULT_ITEM_TYPE;
   const type = fact.type ?? DEFAULT_FACT_TYPE;
   let value = fact.value ?? fact.numericalValue?.map((n) => toValue(n, type));

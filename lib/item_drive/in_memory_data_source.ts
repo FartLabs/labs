@@ -1,4 +1,9 @@
-import type { DataSourceInterface, Fact, FactQuery } from "./shared/mod.ts";
+import type {
+  DataSourceInterface,
+  Fact,
+  FactQuery,
+  PartialFact,
+} from "./shared/mod.ts";
 import { checkFact, makeFact } from "./shared/mod.ts";
 
 export class InMemoryDataSource implements DataSourceInterface {
@@ -7,7 +12,7 @@ export class InMemoryDataSource implements DataSourceInterface {
     public itemIDByFactID: Map<string, string> = new Map(),
   ) {}
 
-  public insertFact(partialFact: Partial<Fact>): Promise<Fact> {
+  public insertFact(partialFact: PartialFact): Promise<Fact> {
     const fact = makeFact(partialFact);
     const allFacts = this.factsByItemID.get(fact.itemID) ?? new Map();
     this.factsByItemID.set(fact.itemID, allFacts.set(fact.factID, fact));
@@ -15,8 +20,8 @@ export class InMemoryDataSource implements DataSourceInterface {
     return Promise.resolve(fact);
   }
 
-  public async insertFacts(facts: Partial<Fact>[]): Promise<Fact[]> {
-    const timestamp = new Date();
+  public async insertFacts(facts: PartialFact[]): Promise<Fact[]> {
+    const timestamp = (new Date()).getTime();
     return await Promise.all(facts.map((fact) =>
       this.insertFact({
         ...fact,

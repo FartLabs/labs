@@ -4,19 +4,21 @@ import type {
   FactQuery,
   Item,
   ItemDriveInterface,
+  PartialFact,
+  PartialItem,
 } from "./shared/mod.ts";
 import { factsFrom, makeItem } from "./shared/mod.ts";
 
 export class ItemDrive implements ItemDriveInterface {
   public constructor(private dataSource: DataSourceInterface) {}
 
-  public async insertItem(partialItem: Partial<Item>): Promise<Item> {
+  public async insertItem(partialItem: PartialItem): Promise<Item> {
     const item = makeItem(partialItem);
     await this.dataSource.insertFacts(factsFrom(item));
     return item;
   }
 
-  public async insertItems(partialItems: Partial<Item>[]): Promise<Item[]> {
+  public async insertItems(partialItems: PartialItem[]): Promise<Item[]> {
     const items = partialItems.map((partialItem) => makeItem(partialItem));
     return await Promise.all(items.map((item) => this.insertItem(item)));
   }
@@ -51,11 +53,11 @@ export class ItemDrive implements ItemDriveInterface {
       });
   }
 
-  public insertFacts(partialFacts: Partial<Fact>[]): Promise<Fact[]> {
+  public insertFacts(partialFacts: PartialFact[]): Promise<Fact[]> {
     return this.dataSource.insertFacts(partialFacts);
   }
 
-  public insertFact(partialFact: Partial<Fact>): Promise<Fact> {
+  public insertFact(partialFact: PartialFact): Promise<Fact> {
     return this.dataSource.insertFact(partialFact);
   }
 

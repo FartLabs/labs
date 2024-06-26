@@ -1,24 +1,35 @@
 import { ulid } from "@std/ulid";
-import type { Fact } from "./fact.ts";
+import type { Fact, PartialFact } from "./fact.ts";
+import { makeFact } from "./fact.ts";
 import type { TypedValue } from "./typed_value.ts";
+
+export type PartialItem =
+  & Omit<Partial<Item>, "attributes">
+  & { attributes?: Record<string, PartialFact> };
 
 export interface Item {
   itemID: string;
   itemType: string;
+  // TODO: Consider refactoring to an array of facts.
   attributes: Record<string, Fact>;
 }
 
 export const DEFAULT_ITEM_TYPE = "empty" as const satisfies string;
 
 export function makeItem(
-  partialItem: Partial<Item>,
+  partialItem: PartialItem,
   defaultItemType: string = DEFAULT_ITEM_TYPE,
   date = new Date(),
 ): Item {
   return {
     itemID: partialItem.itemID ?? ulid(date.getTime()),
     itemType: partialItem.itemType ?? defaultItemType,
-    attributes: partialItem.attributes ?? {},
+    attributes: Object.fromEntries(
+      Object.entries(partialItem.attributes ?? {}).map(([attribute, value]) => [
+        attribute,
+        makeFact(value, date),
+      ]),
+    ),
   };
 }
 

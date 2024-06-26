@@ -1,17 +1,17 @@
-import type { Item } from "./item.ts";
-import type { Fact } from "./fact.ts";
+import type { Item, PartialItem } from "./item.ts";
+import type { Fact, PartialFact } from "./fact.ts";
 import type { FactQuery } from "./queries.ts";
 
 export interface ItemDriveInterface extends DataSourceInterface {
-  insertItem(item: Partial<Item>): Promise<Item>;
-  insertItems(items: Partial<Item>[]): Promise<Item[]>;
+  insertItem(item: PartialItem): Promise<Item>;
+  insertItems(items: PartialItem[]): Promise<Item[]>;
   fetchItems(query: FactQuery): Promise<Item[]>;
   fetchItem(itemID: string): Promise<Item>;
 }
 
 export interface DataSourceInterface {
-  insertFact(fact: Partial<Fact>): Promise<Fact>;
-  insertFacts(facts: Partial<Fact>[]): Promise<Fact[]>;
+  insertFact(fact: PartialFact): Promise<Fact>;
+  insertFacts(facts: PartialFact[]): Promise<Fact[]>;
   fetchFacts(query: FactQuery): Promise<Fact[]>;
   fetchFact(factID: string): Promise<Fact>;
 }
