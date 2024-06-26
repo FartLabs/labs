@@ -25,15 +25,26 @@ export interface TypedValue {
 export const DEFAULT_TYPED_VALUE_TYPE =
   "text" as const satisfies TypedValueType;
 
-export type TypedValueType = (typeof VALUE_TYPES)[number];
+export type TypedValueType = keyof typeof VALUE_TYPES;
 
-export const VALUE_TYPES = [
-  "text",
-  "number",
-  "date_time",
-  "boolean",
-  "item_id",
-] as const;
+/**
+ * checkNumeric returns true if the type is numeric.
+ */
+export function checkNumeric(type: TypedValueType): boolean {
+  return VALUE_TYPES[type].numeric;
+}
+
+export const VALUE_TYPES = {
+  text: { numeric: false },
+  number: { numeric: true },
+  date_time: { numeric: true },
+  boolean: { numeric: true },
+  item_id: { numeric: false },
+} as const satisfies Record<string, TypedValueTypeDefinition>;
+
+export interface TypedValueTypeDefinition {
+  numeric: boolean;
+}
 
 export function fromPartial(partial: Partial<TypedValue>): TypedValue {
   if (partial.value === undefined && partial.numericalValue === undefined) {

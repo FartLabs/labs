@@ -46,9 +46,7 @@ export class ItemDrive implements ItemDriveInterface {
         return makeItem({
           itemID,
           itemType: facts[0].itemType,
-          attributes: Object.fromEntries(
-            facts.map((fact) => [fact.attribute, fact]),
-          ),
+          attributes: facts,
         });
       });
   }

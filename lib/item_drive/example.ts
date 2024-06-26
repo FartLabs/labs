@@ -6,13 +6,16 @@ if (import.meta.main) {
   const dataSource = new InMemoryDataSource();
   const itemDrive = new ItemDrive(dataSource);
   // How do I make the Facts optional for only the insert methods?
-  itemDrive.insertItem({
+  const item = await itemDrive.insertItem({
     itemType: "person",
-    attributes: {
-      // TODO: Might as well be a list of partial facts, right?
-      name: {
-        value: ["Alice"],
+    attributes: [
+      {
+        itemID: "persons/Ethan",
+        factID: "persons/Ethan/name",
+        attribute: "name",
+        value: ["Ethan"],
       },
-    },
+    ],
   });
+  console.log({ item });
 }

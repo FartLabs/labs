@@ -5,13 +5,12 @@ import type { TypedValue } from "./typed_value.ts";
 
 export type PartialItem =
   & Omit<Partial<Item>, "attributes">
-  & { attributes?: Record<string, PartialFact> };
+  & { attributes?: PartialFact[] };
 
 export interface Item {
   itemID: string;
   itemType: string;
-  // TODO: Consider refactoring to an array of facts.
-  attributes: Record<string, Fact>;
+  attributes: Fact[];
 }
 
 export const DEFAULT_ITEM_TYPE = "empty" as const satisfies string;
@@ -24,12 +23,8 @@ export function makeItem(
   return {
     itemID: partialItem.itemID ?? ulid(date.getTime()),
     itemType: partialItem.itemType ?? defaultItemType,
-    attributes: Object.fromEntries(
-      Object.entries(partialItem.attributes ?? {}).map(([attribute, value]) => [
-        attribute,
-        makeFact(value, date),
-      ]),
-    ),
+    attributes: (partialItem.attributes ?? [])
+      .map((partialFact) => makeFact(partialFact, date)),
   };
 }
 

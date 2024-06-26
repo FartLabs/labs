@@ -1,6 +1,6 @@
 import { ulid } from "@std/ulid";
 import type { TypedValue, TypedValueType } from "./typed_value.ts";
-import { toNumericalValue, toValue } from "./typed_value.ts";
+import { checkNumeric, toNumericalValue, toValue } from "./typed_value.ts";
 import { DEFAULT_ITEM_TYPE } from "./item.ts";
 
 export type PartialFact = Partial<Fact>;
@@ -25,21 +25,28 @@ export function makeFact(fact: Partial<Fact>, date = new Date()): Fact {
     throw new Error("One of value or numericalValue is required");
   }
 
+  const type = fact.type ?? DEFAULT_FACT_TYPE;
+  const isNumeric = checkNumeric(type);
+  if (!isNumeric && fact.numericalValue !== undefined) {
+    throw new Error(`Numerical value is not allowed for type ${type}`);
+  }
+
   const timestamp = fact.timestamp ?? date.getTime();
   const factID = fact.factID ?? ulid(timestamp);
   const itemID = fact.itemID ?? ulid(timestamp);
   const itemType = fact.itemType ?? DEFAULT_ITEM_TYPE;
-  const type = fact.type ?? DEFAULT_FACT_TYPE;
   let value = fact.value ?? fact.numericalValue?.map((n) => toValue(n, type));
   const numericalValue = fact.numericalValue ??
-    fact.value?.map((v) => {
-      const n = toNumericalValue(v, type);
-      if (n === undefined) {
-        throw new Error(`Invalid value for type ${type}: ${v}`);
-      }
+    (isNumeric
+      ? fact.value?.map((v) => {
+        const n = toNumericalValue(v, type);
+        if (n === undefined) {
+          throw new Error(`Invalid value for type ${type}: ${v}`);
+        }
 
-      return n;
-    });
+        return n;
+      })
+      : undefined);
 
   if (value === undefined) {
     value = numericalValue?.map((n) => toValue(n, type));
@@ -55,5 +62,6 @@ export function makeFact(fact: Partial<Fact>, date = new Date()): Fact {
     numericalValue,
     attribute: fact.attribute,
     discarded: fact.discarded ?? false,
+    repeatable: fact.repeatable ?? false,
   };
 }
