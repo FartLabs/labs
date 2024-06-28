@@ -5,19 +5,24 @@ import { ItemDrive } from "./item_drive.ts";
 if (import.meta.main) {
   const dataSource = new InMemoryDataSource();
   const itemDrive = new ItemDrive(dataSource);
-  const item1 = await itemDrive.insertItem({
+  const item = await itemDrive.insertItem({
+    itemID: "persons/Ethan",
     itemType: "person",
     attributes: [
       {
-        itemID: "persons/Ethan",
         factID: "persons/Ethan/name",
         attribute: "name",
         value: ["Ethan"],
       },
+      {
+        factID: "persons/Ethan/birthday",
+        type: "date_time",
+        attribute: "birthday",
+        numericalValue: [new Date("2001-03-24").getTime()],
+      },
     ],
   });
 
-  // TODO: Fix bugs.
-  const item = await itemDrive.fetchItem(item1.itemID);
-  console.log({ item1, item });
+  const result = await itemDrive.fetchItem(item.itemID);
+  console.log({ result });
 }

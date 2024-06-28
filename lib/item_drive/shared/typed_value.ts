@@ -46,13 +46,18 @@ export interface TypedValueTypeDefinition {
   numeric: boolean;
 }
 
-export function fromPartial(partial: Partial<TypedValue>): TypedValue {
+export function makeTypedValue(partial: Partial<TypedValue>): TypedValue {
   if (partial.value === undefined && partial.numericalValue === undefined) {
     throw new Error("One of value or numericalValue is required");
   }
 
-  // TODO: numericalValue should be undefined in the type is one that can't be numerical.
   const type = partial.type ?? DEFAULT_TYPED_VALUE_TYPE;
+  const isNumeric = checkNumeric(type);
+  if (!isNumeric && partial.numericalValue !== undefined) {
+    console.log({ partial });
+    throw new Error(`Numerical value is not allowed for type ${type}`);
+  }
+
   const repeatable = partial.repeatable ?? false;
   if (partial.value !== undefined && partial.numericalValue !== undefined) {
     if (partial.value.length !== partial.numericalValue.length) {
@@ -75,30 +80,28 @@ export function fromPartial(partial: Partial<TypedValue>): TypedValue {
     };
   }
 
-  let value: string[] = [];
-  let numericalValue: number[] = [];
-  if (partial.value !== undefined) {
-    value = partial.value;
-    numericalValue = partial.value.map((v) => {
-      const n = toNumericalValue(v, type);
-      if (n === undefined) {
-        throw new Error(`Invalid value for type ${type}: ${v}`);
-      }
+  let value = partial.value ??
+    partial.numericalValue?.map((v) => toValue(v, type));
+  const numericalValue = partial.numericalValue ??
+    (isNumeric
+      ? partial.value?.map((v) => {
+        const n = toNumericalValue(v, type);
+        if (n === undefined) {
+          throw new Error(`Invalid value for type ${type}: ${v}`);
+        }
 
-      return n;
-    });
-  }
-
-  if (partial.numericalValue !== undefined) {
-    numericalValue = partial.numericalValue;
-    value = partial.numericalValue.map((n) => toValue(n, type));
+        return n;
+      })
+      : undefined);
+  if (value === undefined) {
+    value = numericalValue?.map((v) => toValue(v, type));
   }
 
   return {
     type,
     repeatable,
-    value,
-    numericalValue,
+    value: value as string[],
+    numericalValue: numericalValue,
   };
 }
 

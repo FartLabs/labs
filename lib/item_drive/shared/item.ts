@@ -1,7 +1,6 @@
 import { ulid } from "@std/ulid";
 import type { Fact, PartialFact } from "./fact.ts";
 import { makeFact } from "./fact.ts";
-import type { TypedValue } from "./typed_value.ts";
 
 export type PartialItem =
   & Omit<Partial<Item>, "attributes">
@@ -20,35 +19,31 @@ export function makeItem(
   defaultItemType: string = DEFAULT_ITEM_TYPE,
   date = new Date(),
 ): Item {
-  return {
-    itemID: partialItem.itemID ?? ulid(date.getTime()),
-    itemType: partialItem.itemType ?? defaultItemType,
-    attributes: (partialItem.attributes ?? [])
-      .map((partialFact) => makeFact(partialFact, date)),
-  };
-}
-
-export function factsFrom(item: Partial<Item>): Partial<Fact>[] {
-  if (item.attributes === undefined) {
-    return [];
-  }
-
-  return Object.entries(item.attributes).map(([attribute, value]) =>
-    factFrom(attribute, value, item.itemID)
+  const itemID = partialItem.itemID ?? ulid(date.getTime());
+  const itemType = partialItem.itemType ?? defaultItemType;
+  const attributes = (partialItem.attributes ?? []).map((partialFact) =>
+    makeFact(
+      { ...partialFact, itemID, itemType },
+      date,
+    )
   );
+  return { itemID, itemType, attributes };
 }
 
-export function factFrom(
-  attribute: string,
-  value: TypedValue,
-  itemID?: string,
-): Partial<Fact> {
-  return {
-    attribute,
-    itemID,
-    value: value.value,
-    numericalValue: value.numericalValue,
-    type: value.type,
-    discarded: false,
-  };
+export function factsFrom(
+  partialItem: PartialItem,
+  date = new Date(),
+): Fact[] {
+  return partialItem.attributes?.map((partialFact) =>
+    makeFact(
+      {
+        ...partialFact,
+        itemID: partialFact.itemID ?? partialItem.itemID ??
+          ulid(date.getTime()),
+        itemType: partialFact.itemType ?? partialItem.itemType ??
+          DEFAULT_ITEM_TYPE,
+      },
+      date,
+    )
+  ) ?? [];
 }
