@@ -6,16 +6,13 @@ if (import.meta.main) {
   const dataSource = new InMemoryDataSource();
   const itemDrive = new ItemDrive(dataSource);
   const item = await itemDrive.insertItem({
-    itemID: "persons/Ethan",
     itemType: "person",
     attributes: [
       {
-        factID: "persons/Ethan/name",
         attribute: "name",
         value: ["Ethan"],
       },
       {
-        factID: "persons/Ethan/birthday",
         type: "date_time",
         attribute: "birthday",
         numericalValue: [new Date("2001-03-24").getTime()],
@@ -23,6 +20,18 @@ if (import.meta.main) {
     ],
   });
 
-  const result = await itemDrive.fetchItem(item.itemID);
-  console.log({ result });
+  // Is it supposed to fetch all items given an empty query?
+  const result = await itemDrive.fetchItems({
+    attributes: [
+      // {
+      //   attribute: "name",
+      //   valueIncludes: ["Ethan"],
+      // },
+      // {
+      //   attribute: "birthday",
+      //   numericalValueIncludesAtOrAbove: new Date("2001-03-24").getTime(),
+      // },
+    ],
+  });
+  console.log({ item, result });
 }
