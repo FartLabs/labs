@@ -3,7 +3,7 @@
     "@fartlabs/htx": "jsr:@fartlabs/htx@^0.0.3",
     "@fartlabs/jsonx": "jsr:@fartlabs/jsonx@^0.0.10",
     "@fartlabs/rtx": "jsr:@fartlabs/rtx@^0.0.3",
-    "@std/assert": "jsr:@std/assert@^0.225.3",
+    "@std/assert": "jsr:@std/assert@^0.226.0",
     "@std/cli": "jsr:@std/cli@^0.224.1",
     "@std/fs": "jsr:@std/fs@^0.229.1",
     "@std/ulid": "jsr:@std/ulid@^0.224.1",
