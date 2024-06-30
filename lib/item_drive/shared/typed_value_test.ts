@@ -39,3 +39,15 @@ Deno.test("makeTypedValue throws if value and numericalValue have different leng
     "Value and numericalValue must have the same length",
   );
 });
+
+Deno.test("makeTypedValue throws if value and numericalValue check fails", () => {
+  assertThrows(
+    () =>
+      makeTypedValue({
+        type: "number",
+        value: ["0"],
+        numericalValue: [1],
+      }),
+    "Value and numericalValue check failed: 0 !== 1",
+  );
+});

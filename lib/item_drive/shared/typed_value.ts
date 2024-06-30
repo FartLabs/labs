@@ -47,16 +47,12 @@ export interface TypedValueTypeDefinition {
 }
 
 export function makeTypedValue(partial: Partial<TypedValue>): TypedValue {
-  // Throw if both value and numericalValue are undefined. At least one of them
-  // must be defined to create a TypedValue. Instead of null types, we encourage
-  // the use of zero-value types like "" or 0.
   if (partial.value === undefined && partial.numericalValue === undefined) {
     throw new Error("One of value or numericalValue is required");
   }
 
   const type = partial.type ?? DEFAULT_TYPED_VALUE_TYPE;
   const isNumerical = checkNumerical(type);
-  // Throw if numericalValue is defined for a non-numerical type.
   if (!isNumerical && partial.numericalValue !== undefined) {
     throw new Error(`Numerical value is not allowed for type ${type}`);
   }
@@ -72,12 +68,12 @@ export function makeTypedValue(partial: Partial<TypedValue>): TypedValue {
   }
 
   if (partial.value !== undefined && partial.numericalValue !== undefined) {
-    // Throw if value and numericalValue have different lengths.
     if (partial.value.length !== partial.numericalValue.length) {
       throw new Error("Value and numericalValue must have the same length");
     }
 
-    // Throw if value and numericalValue check fails.
+    // TODO: Throw if value is not valid for the type e.g. boolean must be "true" or "false".
+
     for (let i = 0; i < partial.value.length; i++) {
       if (!check(partial.value[i], partial.numericalValue[i], type)) {
         throw new Error(
@@ -87,8 +83,6 @@ export function makeTypedValue(partial: Partial<TypedValue>): TypedValue {
         );
       }
     }
-
-    // TODO: Throw if value is not valid for the type e.g. boolean must be "true" or "false".
 
     // Make a TypedValue with the given values and numerical values.
     return {
