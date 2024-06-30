@@ -62,15 +62,19 @@ export function makeTypedValue(partial: Partial<TypedValue>): TypedValue {
   }
 
   const repeatable = partial.repeatable ?? false;
+  if (
+    !repeatable &&
+    (partial.value !== undefined && partial.value.length !== 1 ||
+      partial.numericalValue !== undefined &&
+        partial.numericalValue.length !== 1)
+  ) {
+    throw new Error("Value and numericalValue must be an array of length 1");
+  }
+
   if (partial.value !== undefined && partial.numericalValue !== undefined) {
     // Throw if value and numericalValue have different lengths.
     if (partial.value.length !== partial.numericalValue.length) {
       throw new Error("Value and numericalValue must have the same length");
-    }
-
-    // Throw if repeatable is false and the lengths are not 1.
-    if (!repeatable && partial.value.length !== 1) {
-      throw new Error("Value and numericalValue must be an array of length 1");
     }
 
     // Throw if value and numericalValue check fails.

@@ -15,9 +15,19 @@ Deno.test("makeTypedValue throws if numericalValue is defined for a non-numerica
   );
 });
 
+Deno.test("makeTypedValue throws if repeatable is false and the lengths of value and numericalValue !== 1", () => {
+  assertThrows(() => makeTypedValue({ value: [] }));
+  assertThrows(() => makeTypedValue({ value: ["a", "b"] }));
+});
+
 Deno.test("makeTypedValue throws if value and numericalValue have different lengths", () => {
   assertThrows(
-    () => makeTypedValue({ value: ["0"], numericalValue: [0, 1] }),
+    () =>
+      makeTypedValue({
+        value: ["0"],
+        numericalValue: [0, 1],
+        repeatable: true,
+      }),
     "Value and numericalValue must have the same length",
   );
 });
