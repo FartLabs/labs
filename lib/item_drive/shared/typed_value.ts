@@ -31,47 +31,62 @@ export type TypedValueType = keyof typeof VALUE_TYPES;
  * checkNumerical returns true if the type is numerical.
  */
 export function checkNumerical(type: TypedValueType): boolean {
-  return VALUE_TYPES[type].numeric;
+  return VALUE_TYPES[type].numerical;
 }
 
 export const VALUE_TYPES = {
-  text: { numeric: false },
-  number: { numeric: true },
-  date_time: { numeric: true },
-  boolean: { numeric: true },
-  item_id: { numeric: false },
+  text: { numerical: false },
+  number: { numerical: true },
+  date_time: { numerical: true },
+  boolean: { numerical: true },
+  item_id: { numerical: false },
 } as const satisfies Record<string, TypedValueTypeDefinition>;
 
 export interface TypedValueTypeDefinition {
-  numeric: boolean;
+  numerical: boolean;
 }
 
 export function makeTypedValue(partial: Partial<TypedValue>): TypedValue {
+  // Throw if both value and numericalValue are undefined. At least one of them
+  // must be defined to create a TypedValue. Instead of null types, we encourage
+  // the use of zero-value types like "" or 0.
   if (partial.value === undefined && partial.numericalValue === undefined) {
     throw new Error("One of value or numericalValue is required");
   }
 
   const type = partial.type ?? DEFAULT_TYPED_VALUE_TYPE;
   const isNumerical = checkNumerical(type);
+  // Throw if numericalValue is defined for a non-numerical type.
   if (!isNumerical && partial.numericalValue !== undefined) {
-    console.log({ partial });
     throw new Error(`Numerical value is not allowed for type ${type}`);
   }
 
   const repeatable = partial.repeatable ?? false;
   if (partial.value !== undefined && partial.numericalValue !== undefined) {
+    // Throw if value and numericalValue have different lengths.
     if (partial.value.length !== partial.numericalValue.length) {
       throw new Error("Value and numericalValue must have the same length");
     }
 
-    if (partial.value.length === 0) {
-      throw new Error("Value and numericalValue must not be empty");
-    }
-
+    // Throw if repeatable is false and the lengths are not 1.
     if (!repeatable && partial.value.length !== 1) {
       throw new Error("Value and numericalValue must be an array of length 1");
     }
 
+    // Throw if value and numericalValue check fails.
+    for (let i = 0; i < partial.value.length; i++) {
+      if (!check(partial.value[i], partial.numericalValue[i], type)) {
+        throw new Error(
+          `Value and numericalValue check failed: ${partial.value[i]} !== ${
+            partial.numericalValue[i]
+          }`,
+        );
+      }
+    }
+
+    // TODO: Throw if value is not valid for the type e.g. boolean must be "true" or "false".
+
+    // Make a TypedValue with the given values and numerical values.
     return {
       type,
       repeatable,
@@ -80,28 +95,20 @@ export function makeTypedValue(partial: Partial<TypedValue>): TypedValue {
     };
   }
 
-  let value = partial.value ??
-    partial.numericalValue?.map((v) => toValue(v, type));
-  const numericalValue = partial.numericalValue ??
-    (isNumerical
-      ? partial.value?.map((v) => {
-        const n = toNumericalValue(v, type);
-        if (n === undefined) {
-          throw new Error(`Invalid value for type ${type}: ${v}`);
-        }
-
-        return n;
-      })
-      : undefined);
-  if (value === undefined) {
-    value = numericalValue?.map((v) => toValue(v, type));
+  // Throw if value is undefined for a non-numerical type.
+  if (!isNumerical && partial.value === undefined) {
+    throw new Error("Expected value to be defined for non-numerical type");
   }
 
   return {
     type,
     repeatable,
-    value: value as string[],
-    numericalValue: numericalValue,
+    value: partial.value ??
+      (partial.numericalValue!.map((v) => toValue(v, type))),
+    numericalValue: partial.numericalValue ??
+      (isNumerical
+        ? partial.value?.map((v) => toNumericalValue(v, type))
+        : undefined),
   };
 }
 
@@ -110,13 +117,9 @@ export function check(v1: string, v2: number, type: TypedValueType): boolean {
 }
 
 export function toValue(
-  numericalValue: number | undefined,
+  numericalValue: number,
   type: TypedValueType,
 ): string {
-  if (numericalValue === undefined) {
-    return "";
-  }
-
   switch (type) {
     case "number": {
       return `${numericalValue}`;
@@ -130,26 +133,21 @@ export function toValue(
       return new Date(numericalValue).toISOString();
     }
 
+    case "text":
+    case "item_id": {
+      throw new Error(
+        `Unexpected type ${type} conversion from numerical value ${numericalValue}`,
+      );
+    }
+
     default: {
       throw new Error(`Unknown type: ${type}`);
     }
   }
 }
 
-export function toNumericalValue(
-  value: string,
-  type: TypedValueType,
-): number | undefined {
-  if (value === "") {
-    return;
-  }
-
+export function toNumericalValue(value: string, type: TypedValueType): number {
   switch (type) {
-    case "text":
-    case "item_id": {
-      return;
-    }
-
     case "number": {
       return parseFloat(value);
     }
@@ -160,6 +158,11 @@ export function toNumericalValue(
 
     case "date_time": {
       return Date.parse(value);
+    }
+
+    case "text":
+    case "item_id": {
+      throw new Error(`Cannot convert value to numerical for type ${type}`);
     }
 
     default: {
