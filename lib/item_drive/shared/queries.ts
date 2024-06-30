@@ -1,5 +1,4 @@
 import type { Fact } from "./fact.ts";
-import { checkNumeric } from "./typed_value.ts";
 
 export interface FactQuery {
   itemID?: string[];
@@ -20,7 +19,6 @@ export interface AttributeQuery {
 }
 
 export function checkFact(fact: Fact, query: FactQuery): boolean {
-  const isNumeric = checkNumeric(fact.type);
   return (
     (query.itemID === undefined || query.itemID.includes(fact.itemID)) &&
     (query.factID === undefined || query.factID.includes(fact.factID)) &&

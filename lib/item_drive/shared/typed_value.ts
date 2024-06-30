@@ -28,9 +28,9 @@ export const DEFAULT_TYPED_VALUE_TYPE =
 export type TypedValueType = keyof typeof VALUE_TYPES;
 
 /**
- * checkNumeric returns true if the type is numeric.
+ * checkNumerical returns true if the type is numerical.
  */
-export function checkNumeric(type: TypedValueType): boolean {
+export function checkNumerical(type: TypedValueType): boolean {
   return VALUE_TYPES[type].numeric;
 }
 
@@ -52,8 +52,8 @@ export function makeTypedValue(partial: Partial<TypedValue>): TypedValue {
   }
 
   const type = partial.type ?? DEFAULT_TYPED_VALUE_TYPE;
-  const isNumeric = checkNumeric(type);
-  if (!isNumeric && partial.numericalValue !== undefined) {
+  const isNumerical = checkNumerical(type);
+  if (!isNumerical && partial.numericalValue !== undefined) {
     console.log({ partial });
     throw new Error(`Numerical value is not allowed for type ${type}`);
   }
@@ -83,7 +83,7 @@ export function makeTypedValue(partial: Partial<TypedValue>): TypedValue {
   let value = partial.value ??
     partial.numericalValue?.map((v) => toValue(v, type));
   const numericalValue = partial.numericalValue ??
-    (isNumeric
+    (isNumerical
       ? partial.value?.map((v) => {
         const n = toNumericalValue(v, type);
         if (n === undefined) {
