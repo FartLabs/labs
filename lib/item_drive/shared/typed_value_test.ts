@@ -1,4 +1,4 @@
-import { /* assertEquals, */ assertThrows } from "@std/assert";
+import { assertEquals, assertThrows } from "@std/assert";
 import { makeTypedValue } from "./typed_value.ts";
 
 Deno.test("makeTypedValue throws if both value and numericalValue are undefined", () => {
@@ -18,6 +18,14 @@ Deno.test("makeTypedValue throws if numericalValue is defined for a non-numerica
 Deno.test("makeTypedValue throws if repeatable is false and the lengths of value and numericalValue !== 1", () => {
   assertThrows(() => makeTypedValue({ value: [] }));
   assertThrows(() => makeTypedValue({ value: ["a", "b"] }));
+});
+
+Deno.test("makeTypedValue makes a typed value with multiple values if repeatable is true", () => {
+  const typedValue = makeTypedValue({
+    value: ["a", "b"],
+    repeatable: true,
+  });
+  assertEquals(typedValue.value, ["a", "b"]);
 });
 
 Deno.test("makeTypedValue throws if value and numericalValue have different lengths", () => {
