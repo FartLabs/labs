@@ -28,9 +28,9 @@ export const DEFAULT_TYPED_VALUE_TYPE =
 export type TypedValueType = keyof typeof VALUE_TYPES;
 
 /**
- * checkNumerical returns true if the type is numerical.
+ * checkNumericalType returns true if the type is numerical.
  */
-export function checkNumerical(type: TypedValueType): boolean {
+export function checkNumericalType(type: TypedValueType): boolean {
   return VALUE_TYPES[type].numerical;
 }
 
@@ -52,7 +52,7 @@ export function makeTypedValue(partial: Partial<TypedValue>): TypedValue {
   }
 
   const type = partial.type ?? DEFAULT_TYPED_VALUE_TYPE;
-  const isNumerical = checkNumerical(type);
+  const isNumerical = checkNumericalType(type);
   if (!isNumerical && partial.numericalValue !== undefined) {
     throw new Error(`Numerical value is not allowed for type ${type}`);
   }
@@ -67,15 +67,29 @@ export function makeTypedValue(partial: Partial<TypedValue>): TypedValue {
     throw new Error("Value and numericalValue must be an array of length 1");
   }
 
+  if (partial.value !== undefined) {
+    for (const v of partial.value) {
+      if (!check(v, type)) {
+        throw new Error(`Value check failed: ${v}`);
+      }
+    }
+  }
+
+  if (partial.numericalValue !== undefined) {
+    for (const v of partial.numericalValue) {
+      if (!checkNumerical(v, type)) {
+        throw new Error(`NumericalValue check failed: ${v}`);
+      }
+    }
+  }
+
   if (partial.value !== undefined && partial.numericalValue !== undefined) {
     if (partial.value.length !== partial.numericalValue.length) {
       throw new Error("Value and numericalValue must have the same length");
     }
 
-    // TODO: Throw if value is not valid for the type e.g. boolean must be "true" or "false".
-
     for (let i = 0; i < partial.value.length; i++) {
-      if (!check(partial.value[i], partial.numericalValue[i], type)) {
+      if (!match(partial.value[i], partial.numericalValue[i], type)) {
         throw new Error(
           `Value and numericalValue check failed: ${partial.value[i]} !== ${
             partial.numericalValue[i]
@@ -110,7 +124,57 @@ export function makeTypedValue(partial: Partial<TypedValue>): TypedValue {
   };
 }
 
-export function check(v1: string, v2: number, type: TypedValueType): boolean {
+export function check(value: string, type: TypedValueType): boolean {
+  switch (type) {
+    case "number": {
+      return !isNaN(parseFloat(value));
+    }
+
+    case "boolean": {
+      return value === "true" || value === "false";
+    }
+
+    case "date_time": {
+      return !isNaN(Date.parse(value));
+    }
+
+    case "text":
+    case "item_id": {
+      return true;
+    }
+
+    default: {
+      throw new Error(`Unknown type: ${type}`);
+    }
+  }
+}
+
+export function checkNumerical(value: number, type: TypedValueType): boolean {
+  switch (type) {
+    case "number": {
+      return true;
+    }
+
+    case "boolean": {
+      return value === 0 || value === 1;
+    }
+
+    case "date_time": {
+      return true;
+    }
+
+    case "text":
+    case "item_id": {
+      return false;
+    }
+
+    default: {
+      throw new Error(`Unknown type: ${type}`);
+    }
+  }
+}
+
+export function match(v1: string, v2: number, type: TypedValueType): boolean {
   return v1 === toValue(v2, type) && v2 === toNumericalValue(v1, type);
 }
 

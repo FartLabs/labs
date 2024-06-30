@@ -51,3 +51,14 @@ Deno.test("makeTypedValue throws if value and numericalValue check fails", () =>
     "Value and numericalValue check failed: 0 !== 1",
   );
 });
+
+Deno.test("makeTypedValue throws if value check fails", () => {
+  assertThrows(
+    () => makeTypedValue({ type: "number", value: ["a"] }),
+    "Value check failed: a",
+  );
+  assertThrows(
+    () => makeTypedValue({ type: "number", value: ["a"] }),
+    "Value check failed: a",
+  );
+});
