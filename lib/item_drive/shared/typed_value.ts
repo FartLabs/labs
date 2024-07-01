@@ -22,6 +22,11 @@ export interface TypedValue {
   numericalValue?: number[];
 }
 
+export const BOOLEAN_FALSE = "false" as const;
+export const BOOLEAN_FALSE_NUMERICAL = 0 as const;
+export const BOOLEAN_TRUE = "true" as const;
+export const BOOLEAN_TRUE_NUMERICAL = 1 as const;
+
 export const DEFAULT_TYPED_VALUE_TYPE =
   "text" as const satisfies TypedValueType;
 
@@ -131,7 +136,7 @@ export function check(value: string, type: TypedValueType): boolean {
     }
 
     case "boolean": {
-      return value === "true" || value === "false";
+      return value === BOOLEAN_TRUE || value === BOOLEAN_FALSE;
     }
 
     case "date_time": {
@@ -151,16 +156,14 @@ export function check(value: string, type: TypedValueType): boolean {
 
 export function checkNumerical(value: number, type: TypedValueType): boolean {
   switch (type) {
-    case "number": {
-      return true;
+    case "number":
+    case "date_time": {
+      return !isNaN(value);
     }
 
     case "boolean": {
-      return value === 0 || value === 1;
-    }
-
-    case "date_time": {
-      return true;
+      return value === BOOLEAN_TRUE_NUMERICAL ||
+        value === BOOLEAN_FALSE_NUMERICAL;
     }
 
     case "text":
@@ -188,7 +191,7 @@ export function toValue(
     }
 
     case "boolean": {
-      return numericalValue ? "true" : "false";
+      return numericalValue ? BOOLEAN_TRUE : BOOLEAN_FALSE;
     }
 
     case "date_time": {
@@ -215,7 +218,9 @@ export function toNumericalValue(value: string, type: TypedValueType): number {
     }
 
     case "boolean": {
-      return value === "true" ? 1 : 0;
+      return value === BOOLEAN_TRUE
+        ? BOOLEAN_TRUE_NUMERICAL
+        : BOOLEAN_FALSE_NUMERICAL;
     }
 
     case "date_time": {

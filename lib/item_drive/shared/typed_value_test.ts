@@ -1,5 +1,70 @@
 import { assertEquals, assertThrows } from "@std/assert";
-import { makeTypedValue } from "./typed_value.ts";
+import {
+  check,
+  checkNumerical,
+  checkNumericalType,
+  makeTypedValue,
+  // match,
+  // toNumericalValue,
+  // toValue,
+} from "./typed_value.ts";
+
+Deno.test("check returns true for valid boolean", () => {
+  assertEquals(check("true", "boolean"), true);
+  assertEquals(check("false", "boolean"), true);
+});
+
+Deno.test("check returns false for invalid boolean", () => {
+  assertEquals(check("not true|false", "boolean"), false);
+});
+
+Deno.test("check returns true for valid date_time", () => {
+  assertEquals(check("2021-01-01", "date_time"), true);
+});
+
+Deno.test("check returns false for invalid date_time", () => {
+  assertEquals(check("a", "date_time"), false);
+});
+
+Deno.test("check returns true for text", () => {
+  assertEquals(check("a", "text"), true);
+});
+
+Deno.test("check returns true for item_id", () => {
+  assertEquals(check("a", "item_id"), true);
+});
+
+Deno.test("checkNumerical returns true for valid number", () => {
+  assertEquals(checkNumerical(0, "number"), true);
+});
+
+Deno.test("checkNumerical returns false for invalid number", () => {
+  assertEquals(checkNumerical(NaN, "number"), false);
+});
+
+Deno.test("checkNumerical returns true for valid boolean", () => {
+  assertEquals(checkNumerical(0, "boolean"), true);
+  assertEquals(checkNumerical(1, "boolean"), true);
+});
+
+Deno.test("checkNumerical returns false for invalid boolean", () => {
+  assertEquals(checkNumerical(2, "boolean"), false);
+});
+
+Deno.test("checkNumerical returns true for date_time", () => {
+  assertEquals(checkNumerical(0, "date_time"), true);
+});
+
+Deno.test("checkNumerical returns false for non-numerical types", () => {
+  assertEquals(checkNumerical(0, "text"), false);
+  assertEquals(checkNumerical(0, "item_id"), false);
+});
+
+Deno.test("checkNumericalType returns true for numerical types", () => {
+  assertEquals(checkNumericalType("number"), true);
+  assertEquals(checkNumericalType("date_time"), true);
+  assertEquals(checkNumericalType("boolean"), true);
+});
 
 Deno.test("makeTypedValue throws if both value and numericalValue are undefined", () => {
   assertThrows(
@@ -52,13 +117,20 @@ Deno.test("makeTypedValue throws if value and numericalValue check fails", () =>
   );
 });
 
-Deno.test("makeTypedValue throws if value check fails", () => {
+Deno.test("makeTypedValue throws if type check fails", () => {
   assertThrows(
     () => makeTypedValue({ type: "number", value: ["a"] }),
     "Value check failed: a",
   );
   assertThrows(
-    () => makeTypedValue({ type: "number", value: ["a"] }),
-    "Value check failed: a",
+    () => makeTypedValue({ type: "boolean", value: ["not true|false"] }),
+    "Value check failed: not true|false",
+  );
+});
+
+Deno.test("makeTypedValue throws if value is undefined for a non-numerical type", () => {
+  assertThrows(
+    () => makeTypedValue({ type: "text" }),
+    "Expected value to be defined for non-numerical type",
   );
 });
