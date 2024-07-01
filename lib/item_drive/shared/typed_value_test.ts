@@ -84,6 +84,15 @@ Deno.test("toNumericalValue converts value to numericalValue", () => {
   assertEquals(toNumericalValue("1970-01-01T00:00:00.000Z", "date_time"), 0);
 });
 
+Deno.test("match returns true for matching values", () => {
+  assertEquals(match("1970-01-01T00:00:00.000Z", 0, "date_time"), true);
+  assertEquals(match("true", 1, "boolean"), true);
+  assertEquals(match("false", 0, "boolean"), true);
+  assertEquals(match("0", 0, "number"), true);
+  assertEquals(match("0", 0, "text"), true);
+  assertEquals(match("0", 0, "item_id"), true);
+});
+
 Deno.test("makeTypedValue throws if both value and numericalValue are undefined", () => {
   assertThrows(
     () => makeTypedValue({}),
