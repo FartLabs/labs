@@ -74,9 +74,11 @@ export function makeTypedValue(partial: Partial<TypedValue>): TypedValue {
 
   if (partial.value !== undefined) {
     for (const v of partial.value) {
-      if (!check(v, type)) {
-        throw new Error(`Value check failed: ${v}`);
+      if (check(v, type)) {
+        continue;
       }
+
+      throw new Error(`Value check failed: ${v}`);
     }
   }
 
@@ -103,7 +105,6 @@ export function makeTypedValue(partial: Partial<TypedValue>): TypedValue {
       }
     }
 
-    // Make a TypedValue with the given values and numerical values.
     return {
       type,
       repeatable,
@@ -112,7 +113,6 @@ export function makeTypedValue(partial: Partial<TypedValue>): TypedValue {
     };
   }
 
-  // Throw if value is undefined for a non-numerical type.
   if (!isNumerical && partial.value === undefined) {
     throw new Error("Expected value to be defined for non-numerical type");
   }
@@ -186,7 +186,9 @@ export function toValue(
   type: TypedValueType,
 ): string {
   switch (type) {
-    case "number": {
+    case "number":
+    case "item_id":
+    case "text": {
       return `${numericalValue}`;
     }
 
@@ -198,13 +200,6 @@ export function toValue(
       return new Date(numericalValue).toISOString();
     }
 
-    case "text":
-    case "item_id": {
-      throw new Error(
-        `Unexpected type ${type} conversion from numerical value ${numericalValue}`,
-      );
-    }
-
     default: {
       throw new Error(`Unknown type: ${type}`);
     }
@@ -213,7 +208,9 @@ export function toValue(
 
 export function toNumericalValue(value: string, type: TypedValueType): number {
   switch (type) {
-    case "number": {
+    case "number":
+    case "text":
+    case "item_id": {
       return parseFloat(value);
     }
 
@@ -225,11 +222,6 @@ export function toNumericalValue(value: string, type: TypedValueType): number {
 
     case "date_time": {
       return Date.parse(value);
-    }
-
-    case "text":
-    case "item_id": {
-      throw new Error(`Cannot convert value to numerical for type ${type}`);
     }
 
     default: {
