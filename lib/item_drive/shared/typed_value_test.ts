@@ -51,13 +51,12 @@ Deno.test("checkNumerical returns false for invalid boolean", () => {
   assertEquals(checkNumerical(2, "boolean"), false);
 });
 
-Deno.test("checkNumerical returns true for date_time", () => {
+Deno.test("checkNumerical returns true for valid value", () => {
+  assertEquals(checkNumerical(0, "text"), true);
+  assertEquals(checkNumerical(0, "item_id"), true);
   assertEquals(checkNumerical(0, "date_time"), true);
-});
-
-Deno.test("checkNumerical returns false for non-numerical types", () => {
-  assertEquals(checkNumerical(0, "text"), false);
-  assertEquals(checkNumerical(0, "item_id"), false);
+  assertEquals(checkNumerical(0, "boolean"), true);
+  assertEquals(checkNumerical(0, "number"), true);
 });
 
 Deno.test("checkNumericalType returns true for numerical types", () => {

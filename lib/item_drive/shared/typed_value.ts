@@ -154,21 +154,24 @@ export function check(value: string, type: TypedValueType): boolean {
   }
 }
 
-export function checkNumerical(value: number, type: TypedValueType): boolean {
+export function checkNumerical(
+  numericalValue: number,
+  type: TypedValueType,
+): boolean {
   switch (type) {
     case "number":
     case "date_time": {
-      return !isNaN(value);
+      return !isNaN(numericalValue);
     }
 
     case "boolean": {
-      return value === BOOLEAN_TRUE_NUMERICAL ||
-        value === BOOLEAN_FALSE_NUMERICAL;
+      return numericalValue === BOOLEAN_TRUE_NUMERICAL ||
+        numericalValue === BOOLEAN_FALSE_NUMERICAL;
     }
 
     case "text":
     case "item_id": {
-      return false;
+      return true;
     }
 
     default: {
@@ -177,14 +180,25 @@ export function checkNumerical(value: number, type: TypedValueType): boolean {
   }
 }
 
-export function match(v1: string, v2: number, type: TypedValueType): boolean {
-  return v1 === toValue(v2, type) && v2 === toNumericalValue(v1, type);
+export function match(
+  value: string,
+  numericalValue: number,
+  type: TypedValueType,
+): boolean {
+  return value === toValue(numericalValue, type) &&
+    numericalValue === toNumericalValue(value, type);
 }
 
 export function toValue(
   numericalValue: number,
   type: TypedValueType,
 ): string {
+  if (!checkNumerical(numericalValue, type)) {
+    throw new Error(
+      `Invalid numerical value for type ${type}: ${numericalValue}`,
+    );
+  }
+
   switch (type) {
     case "number":
     case "item_id":
@@ -207,6 +221,10 @@ export function toValue(
 }
 
 export function toNumericalValue(value: string, type: TypedValueType): number {
+  if (!check(value, type)) {
+    throw new Error(`Invalid value for type ${type}: ${value}`);
+  }
+
   switch (type) {
     case "number":
     case "text":
