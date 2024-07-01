@@ -7,8 +7,6 @@ Deno.test("makeFact makes a fact from an attribute and value", () => {
   assertEquals(fact.value, ["Ethan"]);
 });
 
-// TODO: Write a list of tests for the typed_value module.
-
 Deno.test("makeFact makes a fact from an attribute and numerical value", () => {
   const fact = makeFact({
     attribute: "age",
@@ -18,21 +16,6 @@ Deno.test("makeFact makes a fact from an attribute and numerical value", () => {
   assertEquals(fact.attribute, "age");
   assertEquals(fact.numericalValue, [10]);
 });
-
-// Deno.test("makeFact throws if a non-numerical fact has numericalValue", () => {
-//   const fact = makeFact({
-//     attribute: "age",
-//     numericalValue: [10],
-//   });
-//   assertEquals(fact.attribute, "age");
-//   assertEquals(fact.numericalValue, [10]);
-// });
-
-// Deno.test("makeFact throws if multiple values are provided without setting repeatable to true", () => {
-//   assertThrows(() => {
-//     makeFact({ attribute: "name", value: ["Ethan", "Ash"] });
-//   });
-// });
 
 Deno.test("makeFact makes a fact with multiple values if repeatable is true", () => {
   const fact = makeFact({

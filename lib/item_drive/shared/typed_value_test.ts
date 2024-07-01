@@ -122,10 +122,19 @@ Deno.test("makeTypedValue throws if repeatable is false and the lengths of value
 
 Deno.test("makeTypedValue makes a typed value with multiple values if repeatable is true", () => {
   const typedValue = makeTypedValue({
-    value: ["a", "b"],
     repeatable: true,
+    value: ["a", "b"],
   });
   assertEquals(typedValue.value, ["a", "b"]);
+  assertEquals(typedValue.numericalValue, undefined);
+
+  const typedValue2 = makeTypedValue({
+    type: "number",
+    repeatable: true,
+    numericalValue: [0, 1],
+  });
+  assertEquals(typedValue2.value, ["0", "1"]);
+  assertEquals(typedValue2.numericalValue, [0, 1]);
 });
 
 Deno.test("makeTypedValue throws if value and numericalValue have different lengths", () => {
