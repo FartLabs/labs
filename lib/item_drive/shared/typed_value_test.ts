@@ -6,7 +6,7 @@ import {
   makeTypedValue,
   // match,
   // toNumericalValue,
-  // toValue,
+  toValue,
 } from "./typed_value.ts";
 
 Deno.test("check returns true for valid boolean", () => {
@@ -64,6 +64,13 @@ Deno.test("checkNumericalType returns true for numerical types", () => {
   assertEquals(checkNumericalType("number"), true);
   assertEquals(checkNumericalType("date_time"), true);
   assertEquals(checkNumericalType("boolean"), true);
+});
+
+Deno.test("toValue converts numerical type to string", () => {
+  assertEquals(toValue(0, "number"), "0");
+  assertEquals(toValue(1, "boolean"), "true");
+  assertEquals(toValue(0, "boolean"), "false");
+  assertEquals(toValue(0, "date_time"), "1970-01-01T00:00:00.000Z");
 });
 
 Deno.test("makeTypedValue throws if both value and numericalValue are undefined", () => {
