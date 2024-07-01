@@ -40,9 +40,7 @@ export interface FactQuery {
 export interface AttributeQuery {
   attribute: string;
   valueIncludes?: string[];
-  valueExcludes?: string[];
   numericalValueIncludes?: number[];
-  numericalValueExcludes?: number[];
   numericalValueIncludesAtOrAbove?: number;
   numericalValueIncludesAtOrBelow?: number;
   createdAtOrAfter?: number;
@@ -61,20 +59,10 @@ export function checkFact(fact: Fact, query: FactQuery): boolean {
             attributeQuery.valueIncludes !== undefined &&
             attributeQuery.valueIncludes.includes(value)
           )) &&
-        (attributeQuery.valueExcludes === undefined ||
-          fact.value.every((value) =>
-            attributeQuery.valueExcludes !== undefined &&
-            !attributeQuery.valueExcludes.includes(value)
-          )) &&
         ((attributeQuery.numericalValueIncludes === undefined ||
           fact.numericalValue?.some((numericalValue) =>
             attributeQuery.numericalValueIncludes !== undefined &&
             attributeQuery.numericalValueIncludes.includes(numericalValue)
-          )) ?? false) &&
-        ((attributeQuery.numericalValueExcludes === undefined ||
-          fact.numericalValue?.every((numericalValue) =>
-            attributeQuery.numericalValueExcludes !== undefined &&
-            !attributeQuery.numericalValueExcludes.includes(numericalValue)
           )) ?? false) &&
         ((attributeQuery.numericalValueIncludesAtOrAbove === undefined ||
           fact.numericalValue?.some((numericalValue) =>
