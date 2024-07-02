@@ -185,8 +185,9 @@ export function match(
   numericalValue: number,
   type: TypedValueType,
 ): boolean {
-  return value === toValue(numericalValue, type) &&
+  const matches = value === toValue(numericalValue, type) &&
     numericalValue === toNumericalValue(value, type);
+  return matches;
 }
 
 export function toValue(

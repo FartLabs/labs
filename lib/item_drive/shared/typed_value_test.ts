@@ -71,7 +71,7 @@ Deno.test("toValue converts numerical type to string", () => {
   assertEquals(toValue(0, "item_id"), "0");
   assertEquals(toValue(1, "boolean"), "true");
   assertEquals(toValue(0, "boolean"), "false");
-  assertEquals(toValue(0, "date_time"), "1970-01-01T00:00:00.000Z");
+  assertEquals(toValue(0, "date_time"), new Date(0).toISOString());
 });
 
 Deno.test("toNumericalValue converts value to numericalValue", () => {
@@ -80,11 +80,11 @@ Deno.test("toNumericalValue converts value to numericalValue", () => {
   assertEquals(toNumericalValue("0", "item_id"), 0);
   assertEquals(toNumericalValue("true", "boolean"), 1);
   assertEquals(toNumericalValue("false", "boolean"), 0);
-  assertEquals(toNumericalValue("1970-01-01T00:00:00.000Z", "date_time"), 0);
+  assertEquals(toNumericalValue(new Date(0).toISOString(), "date_time"), 0);
 });
 
 Deno.test("match returns true for matching values", () => {
-  assertEquals(match("1970-01-01T00:00:00.000Z", 0, "date_time"), true);
+  assertEquals(match(new Date(0).toISOString(), 0, "date_time"), true);
   assertEquals(match("true", 1, "boolean"), true);
   assertEquals(match("false", 0, "boolean"), true);
   assertEquals(match("0", 0, "number"), true);
@@ -93,7 +93,7 @@ Deno.test("match returns true for matching values", () => {
 });
 
 Deno.test("match returns false for non-matching values", () => {
-  assertEquals(match("1970-01-01T00:00:00.000Z", 1, "date_time"), false);
+  assertEquals(match(new Date(0).toISOString(), 1, "date_time"), false);
   assertEquals(match("true", 0, "boolean"), false);
   assertEquals(match("false", 1, "boolean"), false);
   assertEquals(match("0", 1, "number"), false);

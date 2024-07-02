@@ -11,7 +11,7 @@ export interface Fact extends TypedValue {
   itemType: string;
   attribute: string;
   timestamp: number;
-  discarded: boolean;
+  discarded: boolean; // TODO: Remove discarded property.
 }
 
 export function makeFact(fact: PartialFact, date = new Date()): Fact {

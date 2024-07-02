@@ -38,10 +38,8 @@ export function factsFrom(
     makeFact(
       {
         ...partialFact,
-        itemID: partialFact.itemID ?? partialItem.itemID ??
-          ulid(date.getTime()),
-        itemType: partialFact.itemType ?? partialItem.itemType ??
-          DEFAULT_ITEM_TYPE,
+        itemID: partialItem.itemID ?? ulid(date.getTime()),
+        itemType: partialItem.itemType ?? DEFAULT_ITEM_TYPE,
       },
       date,
     )
