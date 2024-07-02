@@ -1,6 +1,5 @@
 import type { Item, PartialItem } from "./item.ts";
-import type { Fact, PartialFact } from "./fact.ts";
-import type { FactQuery } from "./queries.ts";
+import type { Fact, FactQuery, PartialFact } from "./fact.ts";
 
 export interface ItemDriveInterface extends DataSourceInterface {
   insertItem(item: PartialItem): Promise<Item>;

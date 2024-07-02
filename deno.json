@@ -17,7 +17,6 @@
     "jsxImportSource": "@fartlabs/jsonx"
   },
   "tasks": {
-    "generate": "deno run -Ar https://deno.land/x/generate/cli/main.ts gen.ts",
-    "example": "deno run -A ./lib/system/examples/example.ts"
+    "example": "deno run -A lib/item_drive/example.ts"
   }
 }
